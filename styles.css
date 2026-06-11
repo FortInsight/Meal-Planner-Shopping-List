@@ -312,6 +312,39 @@ h1 {
   gap: 16px;
 }
 
+.password-field {
+  position: relative;
+}
+
+.password-field input {
+  padding-right: 52px;
+}
+
+.password-toggle-button {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: rgba(46, 30, 63, 0.58);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-toggle-button:hover {
+  transform: translateY(-50%);
+  color: var(--ink);
+}
+
 .auth-actions-row {
   display: flex;
   flex-wrap: wrap;

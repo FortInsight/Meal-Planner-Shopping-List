@@ -25,7 +25,10 @@
         </label>
         <label>
           Password
-          <input id="auth-password" type="password" placeholder="Enter your password" autocomplete="current-password">
+          <div class="password-field">
+            <input id="auth-password" type="password" placeholder="Enter your password" autocomplete="current-password">
+            <button id="toggle-password-button" type="button" class="password-toggle-button" aria-label="Show password" aria-pressed="false">👁</button>
+          </div>
         </label>
         <div class="auth-actions-row">
           <button id="signup-button" type="button" class="primary-button">Sign up</button>

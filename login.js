@@ -4,6 +4,8 @@ const authForm = document.getElementById("auth-form");
 const authMessage = document.getElementById("auth-message");
 const signupButton = document.getElementById("signup-button");
 const loginButton = document.getElementById("login-button");
+const passwordInput = document.getElementById("auth-password");
+const togglePasswordButton = document.getElementById("toggle-password-button");
 
 function setAuthMessage(text) {
   authMessage.textContent = text;
@@ -11,6 +13,14 @@ function setAuthMessage(text) {
 
 function authClientReady() {
   return Boolean(authApi);
+}
+
+function togglePasswordVisibility() {
+  const isHidden = passwordInput.type === "password";
+  passwordInput.type = isHidden ? "text" : "password";
+  togglePasswordButton.textContent = isHidden ? "🙈" : "👁";
+  togglePasswordButton.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
+  togglePasswordButton.setAttribute("aria-pressed", String(isHidden));
 }
 
 async function openPlannerIfSignedIn() {
@@ -77,4 +87,5 @@ async function loginUser() {
 
 signupButton.addEventListener("click", signUpUser);
 loginButton.addEventListener("click", loginUser);
+togglePasswordButton.addEventListener("click", togglePasswordVisibility);
 openPlannerIfSignedIn();
