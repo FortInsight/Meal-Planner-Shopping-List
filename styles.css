@@ -59,6 +59,11 @@ select {
   box-shadow: var(--shadow);
 }
 
+.hero-main {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
 .eyebrow,
 .section-kicker,
 .mini-head {
@@ -88,6 +93,7 @@ h1 {
   margin: 14px 0 0;
   color: var(--muted);
   font-size: 1rem;
+  text-wrap: balance;
 }
 
 .hero-stat {
@@ -952,6 +958,7 @@ select {
   }
 
   .hero > div:first-child,
+  .hero-main,
   .hero-stat,
   .auth-hero-stat {
     width: 100%;
