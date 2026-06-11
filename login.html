@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Meal Planner & Shopping List</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-page auth-pending">
+  <main class="auth-shell-page">
+    <section class="auth-card-page">
+      <div class="auth-page-copy">
+        <p class="section-kicker">Family meal planner</p>
+        <h1>Sign in to open your planner.</h1>
+        <p class="hero-copy">Create a user name and password for this device, or log back in with the same details.</p>
+      </div>
+
+      <form id="auth-form" class="stack-form auth-form-grid">
+        <label>
+          User name
+          <input id="auth-name" type="text" placeholder="Enter your user name" autocomplete="name">
+        </label>
+        <label>
+          Password
+          <input id="auth-password" type="password" placeholder="Enter your password" autocomplete="current-password">
+        </label>
+        <div class="auth-actions-row">
+          <button id="signup-button" type="button" class="primary-button">Sign up</button>
+          <button id="login-button" type="button" class="primary-button">Login</button>
+        </div>
+        <p id="auth-message" class="auth-message"></p>
+      </form>
+    </section>
+  </main>
+
+  <script src="auth.js"></script>
+  <script src="login.js"></script>
+</body>
+</html>

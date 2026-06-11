@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meal Planner & Shopping List</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-pending" data-requires-auth="true">
+  <div class="app-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Family planning hub</p>
+        <h1>Meal Planner & Shopping List</h1>
+        <p class="hero-copy">Plan meal ideas, organize shopping categories in columns, assign items to stores, and build your next buying list with pantry check and purchase history.</p>
+      </div>
+      <div class="hero-stat auth-hero-stat">
+        <span id="auth-status-label">Signed in</span>
+        <strong id="auth-welcome-name">Meal Planner</strong>
+        <p id="auth-user-email" class="hero-copy auth-copy-small"></p>
+        <div class="auth-inline-actions">
+          <a href="login.html" class="ghost-link">Account</a>
+          <button id="logout-button" type="button" class="ghost-button">Sign out</button>
+        </div>
+      </div>
+    </header>
+
+    <nav class="tabs" aria-label="Planner sections">
+      <button class="tab-button active" data-tab="meals">Meal Plan</button>
+      <button class="tab-button" data-tab="today-meal">Today's Meal</button>
+      <button class="tab-button" data-tab="week-meal">Week Meal Plan</button>
+      <button class="tab-button" data-tab="shopping">Shopping List</button>
+      <button class="tab-button" data-tab="stores">Stores</button>
+      <button class="tab-button" data-tab="pantry">Pantry Check</button>
+      <button class="tab-button" data-tab="next-list">Next List</button>
+      <button class="tab-button" data-tab="reports">Reports</button>
+    </nav>
+
+    <main>
+      <section class="tab-panel active" id="tab-meals">
+        <div class="panel-grid meal-layout">
+          <section class="card">
+            <div class="card-head">
+              <div>
+                <p class="section-kicker">Add family options</p>
+                <h2>Meal Options</h2>
+              </div>
+            </div>
+            <form id="meal-form" class="stack-form">
+              <div class="form-row">
+                <label>
+                  Meal type
+                  <select name="mealType" required>
+                    <option>Breakfast</option>
+                    <option>Lunch</option>
+                    <option>Dinner</option>
+                    <option>Snacks</option>
+                  </select>
+                </label>
+                <label>
+                  Meal idea
+                  <input type="text" name="dish" placeholder="Rice and beans" required>
+                </label>
+              </div>
+              <button type="submit" class="primary-button">Add meal option</button>
+            </form>
+            <form id="meal-delete-form" class="stack-form top-gap">
+              <label>
+                Delete meal option
+                <select name="mealId"></select>
+              </label>
+              <button type="submit" class="danger-button">Delete selected meal</button>
+            </form>
+          </section>
+
+          <section class="card">
+            <div class="card-head">
+              <div>
+                <p class="section-kicker">Meal columns</p>
+                <h2>Breakfast, Lunch, Dinner, Snacks</h2>
+              </div>
+            </div>
+            <div id="meal-board" class="sheet-board meal-option-board"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="tab-today-meal">
+        <div class="panel-grid planner-layout">
+          <section class="card">
+            <div class="card-head">
+              <div>
+                <p class="section-kicker">Pick from meal options</p>
+                <h2>Plan Today's Meals</h2>
+              </div>
+            </div>
+            <div id="today-plan-board" class="today-plan-board"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="tab-week-meal">
+        <div class="panel-grid planner-layout">
+          <section class="card">
+            <div class="card-head">
+              <div>
+                <p class="section-kicker">Weekly meal picks</p>
+                <h2>Week Meal Plan</h2>
+              </div>
+            </div>
+            <div id="week-plan-board" class="week-plan-board"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="tab-shopping">
+        <div class="panel-grid shopping-layout">
+          <section class="card">
+            <div class="card-head">
+              <div>
+                <p class="section-kicker">Build your sheet</p>
+                <h2>Shopping Categories</h2>
+              </div>
+            </div>
+
+            <form id="category-form" class="stack-form">
+              <label>
+                New category
+                <input type="text" name="categoryName" placeholder="Vegetables" required>
+              </label>
+              <button type="submit" class="ghost-button">Add category column</button>
+            </form>
+
+            <form id="shopping-form" class="stack-form">
+              <label>
+                Item
+                <input type="text" name="name" placeholder="Tomatoes" required>
+              </label>
+              <div class="form-row">
+                <label>
+                  Category
+                  <select name="categoryId"></select>
+                </label>
+                <label>
+                  Quantity
+                  <input type="text" name="quantity" placeholder="6 pcs">
+                </label>
+              </div>
+              <button type="submit" class="primary-button">Add shopping item</button>
+            </form>
+            <form id="shopping-delete-form" class="stack-form top-gap">
+              <label>
+                Delete shopping item
+                <select name="itemId"></select>
+              </label>
+              <button type="submit" class="danger-button">Delete selected item</button>
+            </form>
+            <form id="shopping-category-form" class="stack-form top-gap">
+              <label>
+                Change item category
+                <select name="itemId"></select>
+              </label>
+              <label>
+                New category
+                <select name="categoryId"></select>
+              </label>
+              <button type="submit" class="primary-button">Update category</button>
+            </form>
+          </section>
+
+          <section class="card">
+            <div class="card-head">
+              <div>
+                <p class="section-kicker">Spreadsheet view</p>
+                <h2>Shopping List</h2>
+              </div>
+            </div>
+            <div id="shopping-category-tabs" class="jump-tabs"></div>
+            <div id="shopping-board" class="sheet-board"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="tab-stores">
+        <div class="panel-grid store-layout">
+          <section class="card">
+            <div class="card-head">
+              <div>
+                <p class="section-kicker">Create stores</p>
+                <h2>Store Setup</h2>
+              </div>
+            </div>
+            <form id="store-form" class="stack-form">
+              <label>
+                Store name
+                <input type="text" name="name" placeholder="Costco" required>
+              </label>
+              <label>
+                Color tag
+                <div class="color-picker-row">
+                  <input type="color" name="color" value="#2d8fcb">
+                  <button id="store-color-ok" type="button" class="ghost-button color-ok-button">OK</button>
+                </div>
+              </label>
+              <button type="submit" class="primary-button">Add store</button>
+            </form>
+            <div id="store-chips" class="store-chips"></div>
+          </section>
+
+          <section class="card">
+            <div class="card-head">
+              <div>
+                <p class="section-kicker">Drag items into stores</p>
+                <h2>Store Assignment Board</h2>
+              </div>
+            </div>
+              <div class="store-assignment-layout">
+                <div>
+                  <h3 class="mini-head">Shopping items</h3>
+                  <div class="bulk-assign-panel">
+                    <label>
+                      Assign selected to store
+                      <select id="bulk-store-select"></select>
+                    </label>
+                    <div class="bulk-actions">
+                      <button id="assign-selected-items" type="button" class="primary-button">Assign selected</button>
+                      <button id="clear-selected-items" type="button" class="ghost-button">Clear selected</button>
+                    </div>
+                  </div>
+                  <div id="store-source-board" class="store-source-board"></div>
+                </div>
+                <div>
+                  <h3 class="mini-head">Store columns</h3>
+                  <div id="store-jump-tabs" class="jump-tabs"></div>
+                  <div id="store-board" class="store-board"></div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="tab-pantry">
+        <div class="panel-grid pantry-layout">
+          <section class="card">
+            <div class="card-head">
+              <div>
+                <p class="section-kicker">Check what is at home</p>
+                <h2>Pantry Check Sheet</h2>
+              </div>
+            </div>
+            <label class="search-field">
+              Search item
+              <input id="pantry-search" type="text" placeholder="Search pantry item">
+            </label>
+            <div id="pantry-board" class="pantry-board"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="tab-next-list">
+        <div class="panel-grid next-layout">
+          <section class="card">
+            <div class="card-head">
+              <div>
+                <p class="section-kicker">Need to buy</p>
+                <h2>Next List By Store</h2>
+              </div>
+            </div>
+            <div id="next-list-board" class="store-board"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="tab-reports">
+        <div class="panel-grid reports-layout">
+          <section class="card">
+            <div class="card-head">
+              <div>
+                <p class="section-kicker">Purchase summary</p>
+                <h2>Items Purchased</h2>
+              </div>
+            </div>
+            <div class="report-filters">
+              <label>
+                Item
+                <select id="report-item-filter"></select>
+              </label>
+              <label>
+                Category
+                <select id="report-category-filter"></select>
+              </label>
+              <label>
+                From
+                <input id="report-date-from" type="date">
+              </label>
+              <label>
+                To
+                <input id="report-date-to" type="date">
+              </label>
+            </div>
+            <div id="report-stats" class="report-stats"></div>
+            <div id="report-chart" class="report-chart"></div>
+          </section>
+
+          <section class="card">
+            <div class="card-head">
+              <div>
+                <p class="section-kicker">Purchase history</p>
+                <h2>Shopping Dates And Lists</h2>
+              </div>
+              <button id="clear-report-history" type="button" class="danger-button">Clear history</button>
+            </div>
+            <div id="report-history" class="report-history"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <template id="meal-column-template">
+    <section class="sheet-column">
+      <div class="sheet-column-head">
+        <h3></h3>
+      </div>
+      <div class="sheet-column-body"></div>
+    </section>
+  </template>
+
+  <template id="shopping-item-template">
+    <article class="sheet-item">
+      <div class="sheet-item-row">
+        <label class="item-check">
+          <input type="checkbox" class="item-select">
+        </label>
+        <strong></strong>
+        <span class="qty-pill item-qty"></span>
+      </div>
+    </article>
+  </template>
+
+  <template id="pantry-row-template">
+    <article class="pantry-row">
+      <div class="pantry-name">
+        <div>
+          <strong></strong>
+          <p class="shopping-meta pantry-meta"></p>
+        </div>
+      </div>
+      <div class="pantry-actions">
+        <span class="qty-pill pantry-qty"></span>
+        <button type="button" class="primary-button pantry-need-button">Need to buy</button>
+      </div>
+    </article>
+  </template>
+
+  <script src="auth.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
