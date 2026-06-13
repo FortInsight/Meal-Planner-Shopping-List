@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login | Meal Planner & Shopping List</title>
+  <meta name="theme-color" content="#b04bff">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
@@ -11,9 +14,21 @@
 </head>
 <body class="auth-page auth-pending">
   <main class="auth-shell-page">
+    <div class="auth-mobile-topbar">
+      <button id="auth-menu-button" type="button" class="menu-toggle-button" aria-label="Open sign in details" aria-expanded="false" aria-controls="auth-copy-panel">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <strong>Meal Planner</strong>
+    </div>
+    <div id="auth-menu-backdrop" class="mobile-nav-backdrop"></div>
     <section class="auth-card-page">
-      <div class="auth-page-copy">
-        <p class="section-kicker">Family meal planner</p>
+      <div id="auth-copy-panel" class="auth-page-copy">
+        <div class="auth-copy-head">
+          <p class="section-kicker">Family meal planner</p>
+          <button id="auth-copy-close" type="button" class="ghost-button mobile-close-button">Close</button>
+        </div>
         <h1>Sign in to open your planner.</h1>
         <p class="hero-copy">Create a user name and password for this device, or log back in with the same details.</p>
       </div>
@@ -27,7 +42,7 @@
           Password
           <div class="password-field">
             <input id="auth-password" type="password" placeholder="Enter your password" autocomplete="current-password">
-            <button id="toggle-password-button" type="button" class="password-toggle-button" aria-label="Show password" aria-pressed="false">👁</button>
+            <button id="toggle-password-button" type="button" class="password-toggle-button" aria-label="Show password" aria-pressed="false"></button>
           </div>
         </label>
         <div class="auth-actions-row">

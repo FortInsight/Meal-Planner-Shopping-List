@@ -30,6 +30,10 @@ body {
     linear-gradient(180deg, #f7e8ff 0%, var(--bg) 100%);
 }
 
+body.drawer-open {
+  overflow: hidden;
+}
+
 body.auth-pending .app-shell,
 body.auth-pending .auth-shell-page {
   opacity: 0;
@@ -47,6 +51,40 @@ textarea {
   max-width: 1400px;
   margin: 0 auto;
   padding: 28px 20px 44px;
+}
+
+.mobile-topbar,
+.auth-mobile-topbar,
+.mobile-nav-head,
+.mobile-drawer-actions,
+.mobile-nav-backdrop,
+.auth-copy-head {
+  display: none;
+}
+
+.menu-toggle-button {
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #d7dfea, #bcc9df);
+  box-shadow: inset 0 0 0 1px rgba(101, 128, 173, 0.24);
+  display: inline-grid;
+  gap: 4px;
+  align-content: center;
+  justify-items: center;
+  cursor: pointer;
+}
+
+.menu-toggle-button span {
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: #193c6e;
+}
+
+.mobile-close-button {
+  min-width: 84px;
 }
 
 .hero {
@@ -349,6 +387,20 @@ h1 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.password-toggle-button::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z'/><circle cx='12' cy='12' r='3'/></svg>") center / contain no-repeat;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z'/><circle cx='12' cy='12' r='3'/></svg>") center / contain no-repeat;
+}
+
+.password-toggle-button.is-visible::before {
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m3 3 18 18'/><path d='M10.6 10.7a3 3 0 0 0 4.2 4.2'/><path d='M9.4 5.1A10.8 10.8 0 0 1 12 5c6.5 0 10 7 10 7a18.6 18.6 0 0 1-2.2 3.1'/><path d='M6.7 6.8C3.9 8.7 2 12 2 12s3.5 7 10 7a9.8 9.8 0 0 0 4.1-.8'/></svg>") center / contain no-repeat;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m3 3 18 18'/><path d='M10.6 10.7a3 3 0 0 0 4.2 4.2'/><path d='M9.4 5.1A10.8 10.8 0 0 1 12 5c6.5 0 10 7 10 7a18.6 18.6 0 0 1-2.2 3.1'/><path d='M6.7 6.8C3.9 8.7 2 12 2 12s3.5 7 10 7a9.8 9.8 0 0 0 4.1-.8'/></svg>") center / contain no-repeat;
 }
 
 .password-toggle-button:hover {
@@ -1116,6 +1168,45 @@ textarea {
     padding: 18px 12px 32px;
   }
 
+  .mobile-topbar,
+  .auth-mobile-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    border-radius: 22px;
+    background: rgba(255, 247, 253, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    box-shadow: var(--shadow);
+    position: relative;
+    z-index: 40;
+  }
+
+  .mobile-topbar strong,
+  .auth-mobile-topbar strong {
+    font-family: "Fraunces", serif;
+    font-size: 1.15rem;
+  }
+
+  .mobile-nav-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(46, 30, 63, 0.34);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+    z-index: 70;
+  }
+
+  .app-shell.menu-open .mobile-nav-backdrop,
+  body.auth-copy-open .mobile-nav-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
   .hero,
   .card {
     padding: 20px;
@@ -1130,6 +1221,37 @@ textarea {
     gap: 18px;
     padding: 22px 18px;
     border-radius: 24px;
+  }
+
+  .auth-copy-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+
+  .auth-copy-head .section-kicker {
+    margin: 0;
+  }
+
+  .auth-page-copy {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(320px, 86vw);
+    height: 100dvh;
+    padding: 22px 18px;
+    overflow-y: auto;
+    background: linear-gradient(180deg, rgba(255, 247, 253, 0.98), rgba(242, 227, 255, 0.96));
+    box-shadow: 20px 0 40px rgba(46, 30, 63, 0.2);
+    transform: translateX(-110%);
+    transition: transform 180ms ease;
+    z-index: 80;
+    border-radius: 0 24px 24px 0;
+  }
+
+  body.auth-copy-open .auth-page-copy {
+    transform: translateX(0);
   }
 
   h1 {
@@ -1186,13 +1308,49 @@ textarea {
   }
 
   .tabs {
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(148px, 1fr);
-    grid-template-columns: none;
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(320px, 86vw);
+    height: 100dvh;
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 10px;
-    padding: 12px;
-    border-radius: 24px;
-    scroll-snap-type: x proximity;
+    margin: 0;
+    padding: 18px 16px 24px;
+    border-radius: 0 24px 24px 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transform: translateX(-110%);
+    transition: transform 180ms ease;
+    z-index: 80;
+    scroll-snap-type: none;
+  }
+
+  .app-shell.menu-open .tabs {
+    transform: translateX(0);
+  }
+
+  .mobile-nav-head,
+  .mobile-drawer-actions {
+    display: grid;
+    gap: 10px;
+  }
+
+  .mobile-nav-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+
+  .mobile-nav-head strong {
+    font-family: "Fraunces", serif;
+    font-size: 1.2rem;
+  }
+
+  .mobile-drawer-actions {
+    margin-top: 10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
   }
 
   .tab-button {
@@ -1200,7 +1358,7 @@ textarea {
     padding: 12px 10px;
     border-radius: 18px;
     font-size: 0.95rem;
-    scroll-snap-align: start;
+    white-space: normal;
   }
 
   .sheet-board,
@@ -1305,8 +1463,8 @@ textarea {
   }
 
   .tabs {
-    grid-auto-columns: minmax(132px, 1fr);
-    padding: 10px;
+    width: min(292px, 90vw);
+    padding: 16px 14px 22px;
   }
 
   .tab-button {

@@ -47,6 +47,10 @@ state = ensureProvidedSampleData(state);
 
 const tabButtons = document.querySelectorAll(".tab-button");
 const panels = document.querySelectorAll(".tab-panel");
+const appShell = document.querySelector(".app-shell");
+const mobileMenuButton = document.querySelector("#mobile-menu-button");
+const mobileMenuClose = document.querySelector("#mobile-menu-close");
+const mobileNavBackdrop = document.querySelector("#mobile-nav-backdrop");
 const mealForm = document.querySelector("#meal-form");
 const mealDeleteForm = document.querySelector("#meal-delete-form");
 const recipeForm = document.querySelector("#recipe-form");
@@ -93,6 +97,7 @@ const storeChips = document.querySelector("#store-chips");
 const bulkStoreSelect = document.querySelector("#bulk-store-select");
 const assignSelectedItemsButton = document.querySelector("#assign-selected-items");
 const clearSelectedItemsButton = document.querySelector("#clear-selected-items");
+const drawerLogoutButton = document.querySelector("#drawer-logout-button");
 
 const mealColumnTemplate = document.querySelector("#meal-column-template");
 const shoppingItemTemplate = document.querySelector("#shopping-item-template");
@@ -100,6 +105,13 @@ const pantryRowTemplate = document.querySelector("#pantry-row-template");
 
 tabButtons.forEach((button) => {
   button.addEventListener("click", () => focusTab(button.dataset.tab));
+});
+
+mobileMenuButton?.addEventListener("click", () => setMobileMenuOpen(true));
+mobileMenuClose?.addEventListener("click", () => setMobileMenuOpen(false));
+mobileNavBackdrop?.addEventListener("click", () => setMobileMenuOpen(false));
+drawerLogoutButton?.addEventListener("click", () => {
+  window.MealPlannerAuth?.logout?.();
 });
 
 [reportItemFilter, reportCategoryFilter, reportDateFrom, reportDateTo].forEach((control) => {
@@ -1712,9 +1724,16 @@ function scrollBoardToChild(container, selector) {
   target.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
 }
 
+function setMobileMenuOpen(isOpen) {
+  appShell?.classList.toggle("menu-open", isOpen);
+  document.body.classList.toggle("drawer-open", isOpen);
+  mobileMenuButton?.setAttribute("aria-expanded", String(isOpen));
+}
+
 function focusTab(tabName) {
   tabButtons.forEach((button) => button.classList.toggle("active", button.dataset.tab === tabName));
   panels.forEach((panel) => panel.classList.toggle("active", panel.id === `tab-${tabName}`));
+  setMobileMenuOpen(false);
 }
 
 function escapeHtml(value) {

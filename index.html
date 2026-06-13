@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Meal Planner & Shopping List</title>
+  <meta name="theme-color" content="#b04bff">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
@@ -11,6 +14,15 @@
 </head>
 <body class="auth-pending" data-requires-auth="true">
   <div class="app-shell">
+    <div class="mobile-topbar">
+      <button id="mobile-menu-button" type="button" class="menu-toggle-button" aria-label="Open menu" aria-expanded="false" aria-controls="planner-tabs">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <strong>Meal Planner</strong>
+    </div>
+    <div id="mobile-nav-backdrop" class="mobile-nav-backdrop"></div>
     <header class="hero">
       <div class="hero-main">
         <p class="eyebrow">Family planning hub</p>
@@ -28,7 +40,11 @@
       </div>
     </header>
 
-    <nav class="tabs" aria-label="Planner sections">
+    <nav id="planner-tabs" class="tabs" aria-label="Planner sections">
+      <div class="mobile-nav-head">
+        <strong>Planner Menu</strong>
+        <button id="mobile-menu-close" type="button" class="ghost-button mobile-close-button">Close</button>
+      </div>
       <button class="tab-button active" data-tab="meals">Meal Plan</button>
       <button class="tab-button" data-tab="recipes">Recipes</button>
       <button class="tab-button" data-tab="today-meal">Today's Meal</button>
@@ -38,6 +54,10 @@
       <button class="tab-button" data-tab="pantry">Pantry Check</button>
       <button class="tab-button" data-tab="next-list">Next List</button>
       <button class="tab-button" data-tab="reports">Reports</button>
+      <div class="mobile-drawer-actions">
+        <a href="login.html" class="ghost-link">Account</a>
+        <button id="drawer-logout-button" type="button" class="ghost-button">Sign out</button>
+      </div>
     </nav>
 
     <main>

@@ -101,12 +101,36 @@
 
     setAuthedUi(session.user);
     const logoutButton = document.getElementById("logout-button");
+    const drawerLogoutButton = document.getElementById("drawer-logout-button");
     if (logoutButton) {
       logoutButton.addEventListener("click", logout);
+    }
+    if (drawerLogoutButton) {
+      drawerLogoutButton.addEventListener("click", logout);
     }
 
     document.body?.classList.remove("auth-pending");
     return session;
+  }
+
+  async function registerPwa() {
+    if (!("serviceWorker" in navigator)) {
+      return;
+    }
+
+    const isSupportedOrigin =
+      window.location.protocol === "https:"
+      || ["localhost", "127.0.0.1"].includes(window.location.hostname);
+
+    if (!isSupportedOrigin) {
+      return;
+    }
+
+    try {
+      await navigator.serviceWorker.register("sw.js");
+    } catch {
+      // Ignore registration issues in local or unsupported environments.
+    }
   }
 
   function createUser({ userName, password }) {
@@ -159,4 +183,8 @@
     loginUser,
     logout
   };
+
+  window.addEventListener("load", () => {
+    void registerPwa();
+  });
 })();
