@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account | Meal Planner & Shopping List</title>
+  <meta name="theme-color" content="#203a66">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-page auth-page-dark auth-pending" data-requires-auth="true">
+  <main class="auth-shell-page">
+    <section class="auth-card-page auth-card-page--dark">
+      <div class="auth-login-layout">
+        <div class="auth-page-copy auth-page-copy--dark auth-page-copy--account">
+          <p class="section-kicker">Meal planner account</p>
+          <h1>Your account details.</h1>
+          <p class="hero-copy">Update the name and email attached to your planner, and change your password whenever you need to.</p>
+          <div class="account-summary-card">
+            <span class="mini-head">Current account</span>
+            <strong id="account-summary-name">Planner</strong>
+            <p id="account-summary-email" class="hero-copy auth-copy-small"></p>
+          </div>
+        </div>
+
+        <div class="auth-main-panel">
+          <form id="account-form" class="stack-form auth-form-grid auth-form-grid--dark">
+            <label class="auth-form-wide">
+              User name
+              <input id="account-name" type="text" placeholder="Enter your user name" autocomplete="name">
+            </label>
+            <label class="auth-form-wide">
+              Email
+              <input id="account-email" type="email" placeholder="Enter your email" autocomplete="email">
+            </label>
+            <label>
+              New password
+              <div class="password-field">
+                <input id="account-password" type="password" placeholder="Leave blank to keep current password" autocomplete="new-password">
+                <button id="toggle-account-password-button" type="button" class="password-toggle-button password-toggle-button--dark" aria-label="Show new password" aria-pressed="false"></button>
+              </div>
+            </label>
+            <label>
+              Confirm password
+              <div class="password-field">
+                <input id="account-password-confirm" type="password" placeholder="Confirm new password" autocomplete="new-password">
+                <button id="toggle-account-password-confirm-button" type="button" class="password-toggle-button password-toggle-button--dark" aria-label="Show confirmed password" aria-pressed="false"></button>
+              </div>
+            </label>
+            <div class="auth-actions-row auth-actions-row--dark auth-form-wide">
+              <button id="account-save-button" type="submit" class="primary-button auth-primary-button">Save account changes</button>
+              <a href="index.html" class="ghost-button auth-ghost-button auth-link-button">Back to planner</a>
+              <button id="account-logout-button" type="button" class="ghost-button auth-ghost-button">Sign out</button>
+            </div>
+            <p id="account-message" class="auth-message auth-message--light auth-form-wide"></p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="auth.js"></script>
+  <script src="account.js"></script>
+</body>
+</html>

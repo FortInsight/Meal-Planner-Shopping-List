@@ -26,65 +26,70 @@
     </div>
     <div id="auth-menu-backdrop" class="mobile-nav-backdrop"></div>
     <section class="auth-card-page">
-      <div id="auth-copy-panel" class="auth-page-copy">
-        <div class="auth-copy-head">
+      <div class="auth-login-layout">
+        <div id="auth-copy-panel" class="auth-page-copy auth-page-copy--dark">
+          <div class="auth-copy-head">
+            <p class="section-kicker">Family meal planner</p>
+            <button id="auth-copy-close" type="button" class="ghost-button mobile-close-button">Close</button>
+          </div>
           <p class="section-kicker">Family meal planner</p>
-          <button id="auth-copy-close" type="button" class="ghost-button mobile-close-button">Close</button>
+          <h1>Sign in to open your planner.</h1>
+          <p class="hero-copy">Plan meals, save recipes, sort shopping, assign stores, and pick up where you left off anywhere you sign in.</p>
         </div>
-        <h1>Sign in to open your planner.</h1>
-        <p class="hero-copy">Create your account with email and password, or log in to open your planner anywhere you sign in.</p>
+
+        <div class="auth-main-panel">
+          <form id="auth-form" class="stack-form auth-form-grid auth-form-grid--dark">
+            <label class="auth-form-wide">
+              User name
+              <input id="auth-name" type="text" placeholder="Enter your user name" autocomplete="name">
+            </label>
+            <label>
+              Email
+              <input id="auth-email" type="email" placeholder="Enter your email" autocomplete="email">
+            </label>
+            <label>
+              Password
+              <div class="password-field">
+                <input id="auth-password" type="password" placeholder="Enter your password" autocomplete="current-password">
+                <button id="toggle-password-button" type="button" class="password-toggle-button password-toggle-button--dark" aria-label="Show password" aria-pressed="false"></button>
+              </div>
+            </label>
+            <div class="auth-actions-row auth-actions-row--dark auth-form-wide">
+              <button id="signup-button" type="button" class="primary-button auth-primary-button">Sign up</button>
+              <button id="login-button" type="button" class="primary-button auth-primary-button">Login</button>
+              <button id="forgot-password-button" type="button" class="ghost-button auth-ghost-button">Forgot password?</button>
+            </div>
+            <p id="auth-message" class="auth-message auth-message--light auth-form-wide"></p>
+          </form>
+
+          <form id="update-password-form" class="stack-form auth-form-grid auth-form-grid--dark update-password-form" hidden>
+            <div class="auth-recovery-copy auth-form-wide">
+              <p class="section-kicker">Password recovery</p>
+              <h2>Update your password</h2>
+              <p class="hero-copy">Enter a new password below to finish recovering your account.</p>
+            </div>
+            <label>
+              New password
+              <div class="password-field">
+                <input id="new-password" type="password" placeholder="Enter new password" autocomplete="new-password">
+                <button id="toggle-new-password-button" type="button" class="password-toggle-button password-toggle-button--dark" aria-label="Show new password" aria-pressed="false"></button>
+              </div>
+            </label>
+            <label>
+              Confirm password
+              <div class="password-field">
+                <input id="confirm-password" type="password" placeholder="Confirm new password" autocomplete="new-password">
+                <button id="toggle-confirm-password-button" type="button" class="password-toggle-button password-toggle-button--dark" aria-label="Show confirmed password" aria-pressed="false"></button>
+              </div>
+            </label>
+            <div class="auth-actions-row auth-actions-row--dark auth-form-wide">
+              <button id="update-password-button" type="submit" class="primary-button auth-primary-button">Update password</button>
+              <button id="back-to-login-button" type="button" class="ghost-button auth-ghost-button">Back to login</button>
+            </div>
+            <p id="update-password-message" class="auth-message auth-message--light auth-form-wide"></p>
+          </form>
+        </div>
       </div>
-
-      <form id="auth-form" class="stack-form auth-form-grid">
-        <label>
-          User name
-          <input id="auth-name" type="text" placeholder="Enter your user name" autocomplete="name">
-        </label>
-        <label>
-          Email
-          <input id="auth-email" type="email" placeholder="Enter your email" autocomplete="email">
-        </label>
-        <label>
-          Password
-          <div class="password-field">
-            <input id="auth-password" type="password" placeholder="Enter your password" autocomplete="current-password">
-            <button id="toggle-password-button" type="button" class="password-toggle-button" aria-label="Show password" aria-pressed="false"></button>
-          </div>
-        </label>
-        <div class="auth-actions-row">
-          <button id="signup-button" type="button" class="primary-button">Sign up</button>
-          <button id="login-button" type="button" class="primary-button">Login</button>
-          <button id="forgot-password-button" type="button" class="ghost-button">Forgot password?</button>
-        </div>
-        <p id="auth-message" class="auth-message"></p>
-      </form>
-
-      <form id="update-password-form" class="stack-form auth-form-grid update-password-form" hidden>
-        <div class="auth-recovery-copy">
-          <p class="section-kicker">Password recovery</p>
-          <h2>Update your password</h2>
-          <p class="hero-copy">Enter a new password below to finish recovering your account.</p>
-        </div>
-        <label>
-          New password
-          <div class="password-field">
-            <input id="new-password" type="password" placeholder="Enter new password" autocomplete="new-password">
-            <button id="toggle-new-password-button" type="button" class="password-toggle-button" aria-label="Show new password" aria-pressed="false"></button>
-          </div>
-        </label>
-        <label>
-          Confirm password
-          <div class="password-field">
-            <input id="confirm-password" type="password" placeholder="Confirm new password" autocomplete="new-password">
-            <button id="toggle-confirm-password-button" type="button" class="password-toggle-button" aria-label="Show confirmed password" aria-pressed="false"></button>
-          </div>
-        </label>
-        <div class="auth-actions-row">
-          <button id="update-password-button" type="submit" class="primary-button">Update password</button>
-          <button id="back-to-login-button" type="button" class="ghost-button">Back to login</button>
-        </div>
-        <p id="update-password-message" class="auth-message"></p>
-      </form>
     </section>
   </main>
 

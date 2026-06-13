@@ -7,6 +7,7 @@ const loginButton = document.getElementById("login-button");
 const forgotPasswordButton = document.getElementById("forgot-password-button");
 const updatePasswordForm = document.getElementById("update-password-form");
 const backToLoginButton = document.getElementById("back-to-login-button");
+const authForm = document.getElementById("auth-form");
 const authMenuButton = document.getElementById("auth-menu-button");
 const authMenuBackdrop = document.getElementById("auth-menu-backdrop");
 const authCopyClose = document.getElementById("auth-copy-close");
@@ -171,10 +172,16 @@ async function updatePassword(event) {
   window.location.href = "index.html";
 }
 
+async function submitAuthForm(event) {
+  event.preventDefault();
+  await loginUser();
+}
+
 signupButton.addEventListener("click", signUpUser);
 loginButton.addEventListener("click", loginUser);
 forgotPasswordButton.addEventListener("click", sendPasswordReset);
 updatePasswordForm.addEventListener("submit", updatePassword);
+authForm.addEventListener("submit", submitAuthForm);
 backToLoginButton?.addEventListener("click", () => {
   window.location.hash = "";
   setRecoveryMode(false);

@@ -88,7 +88,7 @@ mobileMenuButton?.addEventListener("click", () => setMobileMenuOpen(true));
 mobileMenuClose?.addEventListener("click", () => setMobileMenuOpen(false));
 mobileNavBackdrop?.addEventListener("click", () => setMobileMenuOpen(false));
 accountButton?.addEventListener("click", () => {
-  window.location.href = "login.html";
+  window.location.href = "account.html";
 });
 toggleMealControlsButton?.addEventListener("click", () => {
   const nextCollapsed = !mealControlsCard?.classList.contains("is-collapsed");
