@@ -72,13 +72,14 @@ const shoppingCategoryForm = document.querySelector("#shopping-category-form");
 const storeForm = document.querySelector("#store-form");
 const storeColorOkButton = document.querySelector("#store-color-ok");
 const copyRecipesButton = document.querySelector("#copy-recipes-button");
-const downloadRecipesButton = document.querySelector("#download-recipes-button");
 const recipeShareStatus = document.querySelector("#recipe-share-status");
+const copyTodayMealButton = document.querySelector("#copy-today-meal-button");
+const todayMealShareStatus = document.querySelector("#today-meal-share-status");
+const copyWeekMealButton = document.querySelector("#copy-week-meal-button");
+const weekMealShareStatus = document.querySelector("#week-meal-share-status");
 const copyShoppingButton = document.querySelector("#copy-shopping-button");
-const downloadShoppingButton = document.querySelector("#download-shopping-button");
 const shoppingShareStatus = document.querySelector("#shopping-share-status");
 const copyNextListButton = document.querySelector("#copy-next-list-button");
-const downloadNextListButton = document.querySelector("#download-next-list-button");
 const nextListShareStatus = document.querySelector("#next-list-share-status");
 const mealBoard = document.querySelector("#meal-board");
 const recipeBoard = document.querySelector("#recipe-board");
@@ -104,7 +105,6 @@ const storeChips = document.querySelector("#store-chips");
 const bulkStoreSelect = document.querySelector("#bulk-store-select");
 const assignSelectedItemsButton = document.querySelector("#assign-selected-items");
 const clearSelectedItemsButton = document.querySelector("#clear-selected-items");
-const drawerAccountButton = document.querySelector("#drawer-account-button");
 const drawerLogoutButton = document.querySelector("#drawer-logout-button");
 
 const mealColumnTemplate = document.querySelector("#meal-column-template");
@@ -119,10 +119,6 @@ mobileMenuButton?.addEventListener("click", () => setMobileMenuOpen(true));
 mobileMenuClose?.addEventListener("click", () => setMobileMenuOpen(false));
 mobileNavBackdrop?.addEventListener("click", () => setMobileMenuOpen(false));
 accountButton?.addEventListener("click", () => {
-  window.location.href = "login.html";
-});
-drawerAccountButton?.addEventListener("click", () => {
-  setMobileMenuOpen(false);
   window.location.href = "login.html";
 });
 toggleMealControlsButton?.addEventListener("click", () => {
@@ -303,9 +299,16 @@ copyRecipesButton.addEventListener("click", async () => {
   setShareStatus(recipeShareStatus, copied ? "Recipes copied." : "Could not copy recipes on this device.");
 });
 
-downloadRecipesButton.addEventListener("click", () => {
-  downloadTextFile("meal-planner-recipes.txt", buildRecipesShareText());
-  setShareStatus(recipeShareStatus, "Recipe file downloaded.");
+copyTodayMealButton.addEventListener("click", async () => {
+  const text = buildTodayMealShareText();
+  const copied = await copyTextToClipboard(text);
+  setShareStatus(todayMealShareStatus, copied ? "Today's meal copied." : "Could not copy today's meal on this device.");
+});
+
+copyWeekMealButton.addEventListener("click", async () => {
+  const text = buildWeekMealShareText();
+  const copied = await copyTextToClipboard(text);
+  setShareStatus(weekMealShareStatus, copied ? "Week meal plan copied." : "Could not copy week meal plan on this device.");
 });
 
 copyShoppingButton.addEventListener("click", async () => {
@@ -314,20 +317,10 @@ copyShoppingButton.addEventListener("click", async () => {
   setShareStatus(shoppingShareStatus, copied ? "Shopping list copied." : "Could not copy shopping list on this device.");
 });
 
-downloadShoppingButton.addEventListener("click", () => {
-  downloadTextFile("meal-planner-shopping-list.txt", buildShoppingShareText());
-  setShareStatus(shoppingShareStatus, "Shopping list file downloaded.");
-});
-
 copyNextListButton.addEventListener("click", async () => {
   const text = buildNextListShareText();
   const copied = await copyTextToClipboard(text);
   setShareStatus(nextListShareStatus, copied ? "Next list copied." : "Could not copy next list on this device.");
-});
-
-downloadNextListButton.addEventListener("click", () => {
-  downloadTextFile("meal-planner-next-list.txt", buildNextListShareText());
-  setShareStatus(nextListShareStatus, "Next list file downloaded.");
 });
 
 function createStarterData() {
@@ -1575,6 +1568,35 @@ function buildShoppingShareText() {
   ].join("\n").trim();
 }
 
+function buildTodayMealShareText() {
+  const lines = [
+    `Today's Meal - ${formatDisplayDate(state.todayMealPlan.date)}`,
+    ""
+  ];
+
+  mealTypes.forEach((mealType) => {
+    const mealName = getMealNameById(state.todayMealPlan.selections[mealType]) || "Not selected";
+    lines.push(`${mealType}: ${mealName}`);
+  });
+
+  return lines.join("\n").trim();
+}
+
+function buildWeekMealShareText() {
+  const lines = ["Week Meal Plan", ""];
+
+  weekDays.forEach((day) => {
+    lines.push(day);
+    mealTypes.forEach((mealType) => {
+      const mealName = getMealNameById(state.weekMealPlan[day]?.[mealType]) || "Not selected";
+      lines.push(`- ${mealType}: ${mealName}`);
+    });
+    lines.push("");
+  });
+
+  return lines.join("\n").trim();
+}
+
 function buildNextListShareText() {
   const neededItems = state.shoppingItems.filter((item) => item.pantryStatus === "need");
 
@@ -1644,18 +1666,6 @@ async function copyTextToClipboard(text) {
   } catch {
     return false;
   }
-}
-
-function downloadTextFile(filename, text) {
-  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.append(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
 }
 
 function setShareStatus(node, message) {

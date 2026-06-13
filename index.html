@@ -55,7 +55,6 @@
       <button class="tab-button" data-tab="next-list">Next List</button>
       <button class="tab-button" data-tab="reports">Reports</button>
       <div class="mobile-drawer-actions">
-        <button id="drawer-account-button" type="button" class="ghost-button">Account</button>
         <button id="drawer-logout-button" type="button" class="ghost-button">Sign out</button>
       </div>
     </nav>
@@ -137,7 +136,6 @@
               </div>
               <div class="card-actions">
                 <button id="copy-recipes-button" type="button" class="ghost-button">Copy recipes</button>
-                <button id="download-recipes-button" type="button" class="primary-button">Download</button>
               </div>
             </div>
             <p id="recipe-share-status" class="share-status"></p>
@@ -154,7 +152,11 @@
                 <p class="section-kicker">Pick from meal options</p>
                 <h2>Plan Today's Meals</h2>
               </div>
+              <div class="card-actions">
+                <button id="copy-today-meal-button" type="button" class="ghost-button">Copy today meal</button>
+              </div>
             </div>
+            <p id="today-meal-share-status" class="share-status"></p>
             <div id="today-plan-board" class="today-plan-board"></div>
           </section>
         </div>
@@ -168,7 +170,11 @@
                 <p class="section-kicker">Weekly meal picks</p>
                 <h2>Week Meal Plan</h2>
               </div>
+              <div class="card-actions">
+                <button id="copy-week-meal-button" type="button" class="ghost-button">Copy week plan</button>
+              </div>
             </div>
+            <p id="week-meal-share-status" class="share-status"></p>
             <div id="week-plan-board" class="week-plan-board"></div>
           </section>
         </div>
@@ -239,7 +245,6 @@
               </div>
               <div class="card-actions">
                 <button id="copy-shopping-button" type="button" class="ghost-button">Copy list</button>
-                <button id="download-shopping-button" type="button" class="primary-button">Download</button>
               </div>
             </div>
             <p id="shopping-share-status" class="share-status"></p>
@@ -338,7 +343,6 @@
               </div>
               <div class="card-actions">
                 <button id="copy-next-list-button" type="button" class="ghost-button">Copy next list</button>
-                <button id="download-next-list-button" type="button" class="primary-button">Download</button>
               </div>
             </div>
             <p id="next-list-share-status" class="share-status"></p>
