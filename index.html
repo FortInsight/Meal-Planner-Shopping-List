@@ -63,41 +63,44 @@
     <main>
       <section class="tab-panel active" id="tab-meals">
         <div class="panel-grid meal-layout">
-          <section class="card">
+          <section id="meal-controls-card" class="card meal-controls-card">
             <div class="card-head">
               <div>
                 <p class="section-kicker">Add family options</p>
                 <h2>Meal Options</h2>
               </div>
+              <button id="toggle-meal-controls" type="button" class="ghost-button meal-controls-toggle">Show controls</button>
             </div>
-            <form id="meal-form" class="stack-form">
-              <div class="form-row">
+            <div class="meal-controls-panel">
+              <form id="meal-form" class="stack-form">
+                <div class="form-row">
+                  <label>
+                    Meal type
+                    <select name="mealType" required>
+                      <option>Breakfast</option>
+                      <option>Lunch</option>
+                      <option>Dinner</option>
+                      <option>Snacks</option>
+                    </select>
+                  </label>
+                  <label>
+                    Meal idea
+                    <input type="text" name="dish" placeholder="Rice and beans" required>
+                  </label>
+                </div>
+                <button type="submit" class="primary-button">Add meal option</button>
+              </form>
+              <form id="meal-delete-form" class="stack-form top-gap">
                 <label>
-                  Meal type
-                  <select name="mealType" required>
-                    <option>Breakfast</option>
-                    <option>Lunch</option>
-                    <option>Dinner</option>
-                    <option>Snacks</option>
-                  </select>
+                  Delete meal option
+                  <select name="mealId"></select>
                 </label>
-                <label>
-                  Meal idea
-                  <input type="text" name="dish" placeholder="Rice and beans" required>
-                </label>
-              </div>
-              <button type="submit" class="primary-button">Add meal option</button>
-            </form>
-            <form id="meal-delete-form" class="stack-form top-gap">
-              <label>
-                Delete meal option
-                <select name="mealId"></select>
-              </label>
-              <button type="submit" class="danger-button">Delete selected meal</button>
-            </form>
+                <button type="submit" class="danger-button">Delete selected meal</button>
+              </form>
+            </div>
           </section>
 
-          <section class="card">
+          <section id="meal-list-card" class="card meal-list-card">
             <div class="card-head">
               <div>
                 <p class="section-kicker">Meal columns</p>

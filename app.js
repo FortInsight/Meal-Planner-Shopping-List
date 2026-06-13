@@ -51,6 +51,8 @@ const appShell = document.querySelector(".app-shell");
 const mobileMenuButton = document.querySelector("#mobile-menu-button");
 const mobileMenuClose = document.querySelector("#mobile-menu-close");
 const mobileNavBackdrop = document.querySelector("#mobile-nav-backdrop");
+const mealControlsCard = document.querySelector("#meal-controls-card");
+const toggleMealControlsButton = document.querySelector("#toggle-meal-controls");
 const mealForm = document.querySelector("#meal-form");
 const mealDeleteForm = document.querySelector("#meal-delete-form");
 const recipeForm = document.querySelector("#recipe-form");
@@ -110,6 +112,10 @@ tabButtons.forEach((button) => {
 mobileMenuButton?.addEventListener("click", () => setMobileMenuOpen(true));
 mobileMenuClose?.addEventListener("click", () => setMobileMenuOpen(false));
 mobileNavBackdrop?.addEventListener("click", () => setMobileMenuOpen(false));
+toggleMealControlsButton?.addEventListener("click", () => {
+  const nextCollapsed = !mealControlsCard?.classList.contains("is-collapsed");
+  setMealControlsCollapsed(nextCollapsed);
+});
 drawerLogoutButton?.addEventListener("click", () => {
   window.MealPlannerAuth?.logout?.();
 });
@@ -737,11 +743,17 @@ function renderWeekMealPlan() {
       const cell = document.createElement("div");
       cell.className = "week-plan-cell";
       const currentMealId = state.weekMealPlan[day]?.[mealType] || "";
+      const label = document.createElement("span");
+      label.className = "week-plan-mobile-label";
+      label.textContent = mealType;
+      cell.append(label);
 
-      cell.append(buildMealOptionSelect(mealType, currentMealId, (nextMealId) => {
+      const select = buildMealOptionSelect(mealType, currentMealId, (nextMealId) => {
         state.weekMealPlan[day][mealType] = nextMealId;
         saveAndRender();
-      }));
+      });
+      select.classList.add("week-plan-select");
+      cell.append(select);
 
       row.append(cell);
     });
@@ -1730,6 +1742,32 @@ function setMobileMenuOpen(isOpen) {
   mobileMenuButton?.setAttribute("aria-expanded", String(isOpen));
 }
 
+function setMealControlsCollapsed(isCollapsed) {
+  if (!mealControlsCard || !toggleMealControlsButton) {
+    return;
+  }
+
+  mealControlsCard.classList.toggle("is-collapsed", isCollapsed);
+  toggleMealControlsButton.textContent = isCollapsed ? "Show controls" : "Hide controls";
+  toggleMealControlsButton.setAttribute("aria-expanded", String(!isCollapsed));
+}
+
+function syncMealControlsForViewport() {
+  if (!mealControlsCard) {
+    return;
+  }
+
+  if (window.innerWidth <= 920) {
+    if (!mealControlsCard.dataset.mobileInitialized) {
+      setMealControlsCollapsed(true);
+      mealControlsCard.dataset.mobileInitialized = "true";
+    }
+  } else {
+    mealControlsCard.dataset.mobileInitialized = "";
+    setMealControlsCollapsed(false);
+  }
+}
+
 function focusTab(tabName) {
   tabButtons.forEach((button) => button.classList.toggle("active", button.dataset.tab === tabName));
   panels.forEach((panel) => panel.classList.toggle("active", panel.id === `tab-${tabName}`));
@@ -1760,6 +1798,8 @@ async function initApp() {
   }
 
   saveAndRender();
+  syncMealControlsForViewport();
+  window.addEventListener("resize", syncMealControlsForViewport);
 }
 
 void initApp();
