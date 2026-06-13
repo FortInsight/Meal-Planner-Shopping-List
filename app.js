@@ -53,6 +53,10 @@ const mobileMenuClose = document.querySelector("#mobile-menu-close");
 const mobileNavBackdrop = document.querySelector("#mobile-nav-backdrop");
 const mealControlsCard = document.querySelector("#meal-controls-card");
 const toggleMealControlsButton = document.querySelector("#toggle-meal-controls");
+const shoppingControlsCard = document.querySelector("#shopping-controls-card");
+const toggleShoppingControlsButton = document.querySelector("#toggle-shopping-controls");
+const storeControlsCard = document.querySelector("#store-controls-card");
+const toggleStoreControlsButton = document.querySelector("#toggle-store-controls");
 const accountButton = document.querySelector("#account-button");
 const mealForm = document.querySelector("#meal-form");
 const mealDeleteForm = document.querySelector("#meal-delete-form");
@@ -124,6 +128,14 @@ drawerAccountButton?.addEventListener("click", () => {
 toggleMealControlsButton?.addEventListener("click", () => {
   const nextCollapsed = !mealControlsCard?.classList.contains("is-collapsed");
   setMealControlsCollapsed(nextCollapsed);
+});
+toggleShoppingControlsButton?.addEventListener("click", () => {
+  const nextCollapsed = !shoppingControlsCard?.classList.contains("is-collapsed");
+  setControlsCollapsed(shoppingControlsCard, toggleShoppingControlsButton, nextCollapsed);
+});
+toggleStoreControlsButton?.addEventListener("click", () => {
+  const nextCollapsed = !storeControlsCard?.classList.contains("is-collapsed");
+  setControlsCollapsed(storeControlsCard, toggleStoreControlsButton, nextCollapsed);
 });
 drawerLogoutButton?.addEventListener("click", () => {
   window.MealPlannerAuth?.logout?.();
@@ -724,10 +736,7 @@ function renderTodayMealPlan() {
 
   const heading = document.createElement("div");
   heading.className = "plan-date-banner";
-  heading.innerHTML = `
-    <strong>${escapeHtml(formatDisplayDate(state.todayMealPlan.date))}</strong>
-    <span>Choose today's meals from the meal plan table.</span>
-  `;
+  heading.innerHTML = `<strong>${escapeHtml(formatDisplayDate(state.todayMealPlan.date))}</strong>`;
   todayPlanBoard.append(heading, createTodayMealTable());
 }
 
@@ -819,14 +828,6 @@ function getMealNameById(mealId) {
 function createTodayMealTable() {
   const wrap = document.createElement("section");
   wrap.className = "today-meal-table-card";
-  wrap.innerHTML = `
-    <div class="card-head compact-head">
-      <div>
-        <p class="section-kicker">Meal picked</p>
-        <h3>Today's Table</h3>
-      </div>
-    </div>
-  `;
 
   const table = document.createElement("div");
   table.className = "today-meal-table";
@@ -1752,29 +1753,47 @@ function setMobileMenuOpen(isOpen) {
 }
 
 function setMealControlsCollapsed(isCollapsed) {
-  if (!mealControlsCard || !toggleMealControlsButton) {
+  setControlsCollapsed(mealControlsCard, toggleMealControlsButton, isCollapsed);
+}
+
+function setControlsCollapsed(card, button, isCollapsed) {
+  if (!card || !button) {
     return;
   }
 
-  mealControlsCard.classList.toggle("is-collapsed", isCollapsed);
-  toggleMealControlsButton.textContent = isCollapsed ? "Show controls" : "Hide controls";
-  toggleMealControlsButton.setAttribute("aria-expanded", String(!isCollapsed));
+  card.classList.toggle("is-collapsed", isCollapsed);
+  button.textContent = isCollapsed ? "Show controls" : "Hide controls";
+  button.setAttribute("aria-expanded", String(!isCollapsed));
 }
 
 function syncMealControlsForViewport() {
-  if (!mealControlsCard) {
+  if (window.innerWidth <= 920) {
+    initializeCollapsedCard(mealControlsCard, toggleMealControlsButton);
+    initializeCollapsedCard(shoppingControlsCard, toggleShoppingControlsButton);
+    initializeCollapsedCard(storeControlsCard, toggleStoreControlsButton);
+  } else {
+    resetCollapsedCard(mealControlsCard, toggleMealControlsButton);
+    resetCollapsedCard(shoppingControlsCard, toggleShoppingControlsButton);
+    resetCollapsedCard(storeControlsCard, toggleStoreControlsButton);
+  }
+}
+
+function initializeCollapsedCard(card, button) {
+  if (!card || !button) {
     return;
   }
-
-  if (window.innerWidth <= 920) {
-    if (!mealControlsCard.dataset.mobileInitialized) {
-      setMealControlsCollapsed(true);
-      mealControlsCard.dataset.mobileInitialized = "true";
-    }
-  } else {
-    mealControlsCard.dataset.mobileInitialized = "";
-    setMealControlsCollapsed(false);
+  if (!card.dataset.mobileInitialized) {
+    setControlsCollapsed(card, button, true);
+    card.dataset.mobileInitialized = "true";
   }
+}
+
+function resetCollapsedCard(card, button) {
+  if (!card || !button) {
+    return;
+  }
+  card.dataset.mobileInitialized = "";
+  setControlsCollapsed(card, button, false);
 }
 
 function focusTab(tabName) {

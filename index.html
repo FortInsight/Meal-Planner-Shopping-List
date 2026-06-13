@@ -101,12 +101,6 @@
           </section>
 
           <section id="meal-list-card" class="card meal-list-card">
-            <div class="card-head">
-              <div>
-                <p class="section-kicker">Meal columns</p>
-                <h2>Breakfast, Lunch, Dinner, Snacks</h2>
-              </div>
-            </div>
             <div id="meal-board" class="sheet-board meal-option-board"></div>
           </section>
         </div>
@@ -182,60 +176,62 @@
 
       <section class="tab-panel" id="tab-shopping">
         <div class="panel-grid shopping-layout">
-          <section class="card">
+          <section id="shopping-controls-card" class="card shopping-controls-card">
             <div class="card-head">
               <div>
                 <p class="section-kicker">Build your sheet</p>
                 <h2>Shopping Categories</h2>
               </div>
+              <button id="toggle-shopping-controls" type="button" class="ghost-button meal-controls-toggle">Show controls</button>
             </div>
-
-            <form id="category-form" class="stack-form">
-              <label>
-                New category
-                <input type="text" name="categoryName" placeholder="Vegetables" required>
-              </label>
-              <button type="submit" class="ghost-button">Add category column</button>
-            </form>
-
-            <form id="shopping-form" class="stack-form">
-              <label>
-                Item
-                <input type="text" name="name" placeholder="Tomatoes" required>
-              </label>
-              <div class="form-row">
+            <div class="meal-controls-panel shopping-controls-panel">
+              <form id="category-form" class="stack-form">
                 <label>
-                  Category
+                  New category
+                  <input type="text" name="categoryName" placeholder="Vegetables" required>
+                </label>
+                <button type="submit" class="ghost-button">Add category column</button>
+              </form>
+
+              <form id="shopping-form" class="stack-form">
+                <label>
+                  Item
+                  <input type="text" name="name" placeholder="Tomatoes" required>
+                </label>
+                <div class="form-row">
+                  <label>
+                    Category
+                    <select name="categoryId"></select>
+                  </label>
+                  <label>
+                    Quantity
+                    <input type="text" name="quantity" placeholder="6 pcs">
+                  </label>
+                </div>
+                <button type="submit" class="primary-button">Add shopping item</button>
+              </form>
+              <form id="shopping-delete-form" class="stack-form top-gap">
+                <label>
+                  Delete shopping item
+                  <select name="itemId"></select>
+                </label>
+                <button type="submit" class="danger-button">Delete selected item</button>
+              </form>
+              <form id="shopping-category-form" class="stack-form top-gap">
+                <label>
+                  Change item category
+                  <select name="itemId"></select>
+                </label>
+                <label>
+                  New category
                   <select name="categoryId"></select>
                 </label>
-                <label>
-                  Quantity
-                  <input type="text" name="quantity" placeholder="6 pcs">
-                </label>
-              </div>
-              <button type="submit" class="primary-button">Add shopping item</button>
-            </form>
-            <form id="shopping-delete-form" class="stack-form top-gap">
-              <label>
-                Delete shopping item
-                <select name="itemId"></select>
-              </label>
-              <button type="submit" class="danger-button">Delete selected item</button>
-            </form>
-            <form id="shopping-category-form" class="stack-form top-gap">
-              <label>
-                Change item category
-                <select name="itemId"></select>
-              </label>
-              <label>
-                New category
-                <select name="categoryId"></select>
-              </label>
-              <button type="submit" class="primary-button">Update category</button>
-            </form>
+                <button type="submit" class="primary-button">Update category</button>
+              </form>
+            </div>
           </section>
 
-          <section class="card">
+          <section id="shopping-list-card" class="card shopping-list-card">
             <div class="card-head">
               <div>
                 <p class="section-kicker">Spreadsheet view</p>
@@ -255,31 +251,34 @@
 
       <section class="tab-panel" id="tab-stores">
         <div class="panel-grid store-layout">
-          <section class="card">
+          <section id="store-controls-card" class="card store-controls-card">
             <div class="card-head">
               <div>
                 <p class="section-kicker">Create stores</p>
                 <h2>Store Setup</h2>
               </div>
+              <button id="toggle-store-controls" type="button" class="ghost-button meal-controls-toggle">Show controls</button>
             </div>
-            <form id="store-form" class="stack-form">
-              <label>
-                Store name
-                <input type="text" name="name" placeholder="Costco" required>
-              </label>
-              <label>
-                Color tag
-                <div class="color-picker-row">
-                  <input type="color" name="color" value="#2d8fcb">
-                  <button id="store-color-ok" type="button" class="ghost-button color-ok-button">OK</button>
-                </div>
-              </label>
-              <button type="submit" class="primary-button">Add store</button>
-            </form>
-            <div id="store-chips" class="store-chips"></div>
+            <div class="meal-controls-panel store-controls-panel">
+              <form id="store-form" class="stack-form">
+                <label>
+                  Store name
+                  <input type="text" name="name" placeholder="Costco" required>
+                </label>
+                <label>
+                  Color tag
+                  <div class="color-picker-row">
+                    <input type="color" name="color" value="#2d8fcb">
+                    <button id="store-color-ok" type="button" class="ghost-button color-ok-button">OK</button>
+                  </div>
+                </label>
+                <button type="submit" class="primary-button">Add store</button>
+              </form>
+              <div id="store-chips" class="store-chips"></div>
+            </div>
           </section>
 
-          <section class="card">
+          <section id="store-board-card" class="card store-board-card">
             <div class="card-head">
               <div>
                 <p class="section-kicker">Drag items into stores</p>
