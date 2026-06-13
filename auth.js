@@ -1,66 +1,53 @@
 (function () {
-  const AUTH_STORAGE_KEY = "meal-planner-auth-v1";
+  const SUPABASE_URL = window.SUPABASE_URL || "";
+  const SUPABASE_KEY = window.SUPABASE_KEY || "";
+  const supabaseClient =
+    SUPABASE_URL && SUPABASE_KEY && window.supabase?.createClient
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+          auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true
+          }
+        })
+      : null;
 
-  function loadAuthStore() {
-    try {
-      const raw = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY));
-      return {
-        users: raw?.users && typeof raw.users === "object" ? raw.users : {},
-        currentUserId: raw?.currentUserId || ""
-      };
-    } catch {
-      return { users: {}, currentUserId: "" };
-    }
-  }
+  let currentSession = null;
 
-  function saveAuthStore(store) {
-    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(store));
-  }
-
-  function buildUserId(userName) {
-    return String(userName || "").trim().toLowerCase();
-  }
-
-  function hashCode(value) {
-    let hash = 0;
-    const text = String(value);
-    for (let index = 0; index < text.length; index += 1) {
-      hash = ((hash << 5) - hash + text.charCodeAt(index)) | 0;
-    }
-    return hash;
-  }
-
-  function hashPassword(password) {
-    return String(hashCode(`meal-planner-profile:${password}`));
-  }
-
-  function getCurrentUser() {
-    const store = loadAuthStore();
-    if (!store.currentUserId) {
-      return null;
-    }
-
-    const profile = store.users[store.currentUserId];
-    if (!profile) {
-      return null;
-    }
-
-    return {
-      id: profile.id,
-      email: "",
-      user_metadata: {
-        user_name: profile.name
-      }
-    };
-  }
-
-  function getSession() {
-    const user = getCurrentUser();
-    return user ? { user } : null;
+  function authEnabled() {
+    return Boolean(supabaseClient);
   }
 
   function getDisplayName(user) {
-    return user?.user_metadata?.user_name || "Planner";
+    return user?.user_metadata?.user_name || user?.email || "Planner";
+  }
+
+  function getCurrentUser() {
+    return currentSession?.user || null;
+  }
+
+  function getSession() {
+    return currentSession;
+  }
+
+  function getCurrentUserId() {
+    return getCurrentUser()?.id || "";
+  }
+
+  async function refreshSession() {
+    if (!authEnabled()) {
+      currentSession = null;
+      return null;
+    }
+
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (error) {
+      currentSession = null;
+      return null;
+    }
+
+    currentSession = data.session || null;
+    return currentSession;
   }
 
   function setAuthedUi(user) {
@@ -75,37 +62,48 @@
       nameEl.textContent = getDisplayName(user);
     }
     if (emailEl) {
-      emailEl.textContent = "Saved on this device";
+      emailEl.textContent = user?.email || "";
     }
   }
 
-  function logout() {
-    const store = loadAuthStore();
-    store.currentUserId = "";
-    saveAuthStore(store);
+  async function logout() {
+    if (authEnabled()) {
+      await supabaseClient.auth.signOut();
+    }
+    currentSession = null;
     window.location.href = "login.html";
   }
 
-  function ensureAuthenticated() {
+  async function ensureAuthenticated() {
     const pageNeedsAuth = document.body?.dataset.requiresAuth === "true";
-    if (!pageNeedsAuth) {
+
+    if (!authEnabled()) {
       document.body?.classList.remove("auth-pending");
       return null;
     }
 
-    const session = getSession();
+    const session = await refreshSession();
+
+    if (!pageNeedsAuth) {
+      document.body?.classList.remove("auth-pending");
+      return session;
+    }
+
     if (!session) {
       window.location.href = "login.html";
       return null;
     }
 
     setAuthedUi(session.user);
+
     const logoutButton = document.getElementById("logout-button");
     const drawerLogoutButton = document.getElementById("drawer-logout-button");
-    if (logoutButton) {
+    if (logoutButton && !logoutButton.dataset.boundLogout) {
+      logoutButton.dataset.boundLogout = "true";
       logoutButton.addEventListener("click", logout);
     }
-    if (drawerLogoutButton) {
+    if (drawerLogoutButton && !drawerLogoutButton.dataset.boundLogout) {
+      drawerLogoutButton.dataset.boundLogout = "true";
       drawerLogoutButton.addEventListener("click", logout);
     }
 
@@ -133,55 +131,110 @@
     }
   }
 
-  function createUser({ userName, password }) {
-    const store = loadAuthStore();
-    const id = buildUserId(userName);
-    if (!id) {
-      return { error: "Enter a user name." };
+  async function createUser({ userName, email, password, emailRedirectTo }) {
+    if (!authEnabled()) {
+      return { error: "Paste your Supabase URL and publishable key into supabase-config.js first." };
     }
-    if (!password) {
-      return { error: "Enter a password." };
-    }
-    if (store.users[id]) {
-      return { error: "That user name already exists. Log in or choose another name." };
+    if (!email || !password) {
+      return { error: "Please enter email and password." };
     }
 
-    store.users[id] = {
-      id,
-      name: userName.trim(),
-      passwordHash: hashPassword(password)
-    };
-    store.currentUserId = id;
-    saveAuthStore(store);
-    return { user: getCurrentUser() };
+    const { data, error } = await supabaseClient.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          user_name: userName || ""
+        },
+        emailRedirectTo
+      }
+    });
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    currentSession = data.session || null;
+    return { user: data.user || currentSession?.user || null, session: currentSession };
   }
 
-  function loginUser({ userName, password }) {
-    const store = loadAuthStore();
-    const id = buildUserId(userName);
-    const user = store.users[id];
-    if (!user || user.passwordHash !== hashPassword(password)) {
-      return { error: "The user name or password does not match." };
+  async function loginUser({ email, password }) {
+    if (!authEnabled()) {
+      return { error: "Paste your Supabase URL and publishable key into supabase-config.js first." };
+    }
+    if (!email || !password) {
+      return { error: "Please enter email and password." };
     }
 
-    store.currentUserId = id;
-    saveAuthStore(store);
-    return { user: getCurrentUser() };
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) {
+      return { error: error.message };
+    }
+
+    currentSession = data.session || null;
+    return { user: data.user || currentSession?.user || null, session: currentSession };
+  }
+
+  async function sendPasswordReset({ email, redirectTo }) {
+    if (!authEnabled()) {
+      return { error: "Paste your Supabase URL and publishable key into supabase-config.js first." };
+    }
+    if (!email) {
+      return { error: "Enter your email first." };
+    }
+
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+      redirectTo
+    });
+
+    return error ? { error: error.message } : { error: "" };
+  }
+
+  async function updatePassword({ password }) {
+    if (!authEnabled()) {
+      return { error: "Paste your Supabase URL and publishable key into supabase-config.js first." };
+    }
+    if (!password) {
+      return { error: "Enter a new password." };
+    }
+
+    const { data, error } = await supabaseClient.auth.updateUser({ password });
+    if (error) {
+      return { error: error.message };
+    }
+
+    currentSession = currentSession ? { ...currentSession, user: data.user || currentSession.user } : currentSession;
+    return { error: "" };
+  }
+
+  if (authEnabled()) {
+    supabaseClient.auth.onAuthStateChange((_event, session) => {
+      currentSession = session || null;
+
+      if (document.body?.dataset.requiresAuth === "true" && session?.user) {
+        setAuthedUi(session.user);
+        document.body?.classList.remove("auth-pending");
+      }
+    });
   }
 
   window.MealPlannerAuth = {
-    AUTH_STORAGE_KEY,
+    authEnabled,
     createUser,
     ensureAuthenticated,
     getCurrentUser,
-    getCurrentUserId: () => getCurrentUser()?.id || "",
+    getCurrentUserId,
     getDisplayName,
-    getLoginUrl: () => new URL("login.html", window.location.href).href,
+    getLoginUrl: () => new URL("login.html", new URL("./", window.location.href)).href,
+    getPlannerUrl: () => new URL("./", window.location.href).href,
     getSession,
+    getSessionAsync: refreshSession,
     getUser: async () => getCurrentUser(),
-    hashPassword,
     loginUser,
-    logout
+    logout,
+    sendPasswordReset,
+    supabaseClient,
+    updatePassword
   };
 
   window.addEventListener("load", () => {

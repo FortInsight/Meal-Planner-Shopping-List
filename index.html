@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Meal Planner & Shopping List</title>
@@ -343,6 +345,13 @@
               </div>
               <div class="card-actions">
                 <button id="copy-next-list-button" type="button" class="ghost-button">Copy next list</button>
+              </div>
+            </div>
+            <div class="bulk-assign-panel">
+              <strong>Select items to mark as purchased</strong>
+              <div class="bulk-actions">
+                <button id="purchase-selected-items" type="button" class="primary-button">Purchased selected</button>
+                <button id="clear-next-list-selected" type="button" class="ghost-button">Clear selected</button>
               </div>
             </div>
             <p id="next-list-share-status" class="share-status"></p>

@@ -44,6 +44,8 @@ const PROVIDED_SHOPPING_CATEGORIES = {
 const starterData = createStarterData();
 let state = loadState();
 state = ensureProvidedSampleData(state);
+let activeUserId = "";
+let skipRemoteSync = false;
 
 const tabButtons = document.querySelectorAll(".tab-button");
 const panels = document.querySelectorAll(".tab-panel");
@@ -81,6 +83,8 @@ const copyShoppingButton = document.querySelector("#copy-shopping-button");
 const shoppingShareStatus = document.querySelector("#shopping-share-status");
 const copyNextListButton = document.querySelector("#copy-next-list-button");
 const nextListShareStatus = document.querySelector("#next-list-share-status");
+const purchaseSelectedItemsButton = document.querySelector("#purchase-selected-items");
+const clearNextListSelectedButton = document.querySelector("#clear-next-list-selected");
 const mealBoard = document.querySelector("#meal-board");
 const recipeBoard = document.querySelector("#recipe-board");
 const todayPlanBoard = document.querySelector("#today-plan-board");
@@ -293,6 +297,42 @@ clearSelectedItemsButton.addEventListener("click", () => {
   saveAndRender();
 });
 
+purchaseSelectedItemsButton.addEventListener("click", () => {
+  const selectedIds = new Set(state.selectedNextListItemIds);
+  if (!selectedIds.size) {
+    return;
+  }
+
+  state.shoppingItems = state.shoppingItems.map((item) => {
+    if (!selectedIds.has(item.id) || item.pantryStatus !== "need") {
+      return item;
+    }
+
+    state.purchaseHistory.unshift({
+      id: crypto.randomUUID(),
+      itemId: item.id,
+      name: item.name,
+      categoryId: item.categoryId,
+      quantity: item.quantity,
+      storeId: item.storeId,
+      purchasedAt: getTodayLabel()
+    });
+
+    return {
+      ...item,
+      pantryStatus: "unknown"
+    };
+  });
+
+  state.selectedNextListItemIds = [];
+  saveAndRender();
+});
+
+clearNextListSelectedButton.addEventListener("click", () => {
+  state.selectedNextListItemIds = [];
+  saveAndRender();
+});
+
 copyRecipesButton.addEventListener("click", async () => {
   const text = buildRecipesShareText();
   const copied = await copyTextToClipboard(text);
@@ -359,6 +399,7 @@ function createStarterData() {
     recipes: [],
     sampleDataVersion: PROVIDED_SAMPLE_VERSION,
     selectedStoreItemIds: [],
+    selectedNextListItemIds: [],
     purchaseHistory: []
   };
 }
@@ -517,6 +558,7 @@ function normalizeState(raw) {
       : migratedRecipes,
     sampleDataVersion: raw.sampleDataVersion || "",
     selectedStoreItemIds: Array.isArray(raw.selectedStoreItemIds) ? raw.selectedStoreItemIds : [],
+    selectedNextListItemIds: Array.isArray(raw.selectedNextListItemIds) ? raw.selectedNextListItemIds : [],
     purchaseHistory: Array.isArray(raw.purchaseHistory)
       ? raw.purchaseHistory.map((entry) => ({
           id: entry.id || crypto.randomUUID(),
@@ -635,10 +677,351 @@ function persistState() {
   localStorage.setItem(getScopedStorageKey(), JSON.stringify(state));
 }
 
+function getSupabaseClient() {
+  return window.MealPlannerAuth?.supabaseClient || null;
+}
+
+function remoteSyncEnabled() {
+  return Boolean(getSupabaseClient() && activeUserId);
+}
+
+function getCurrentWeekKey() {
+  const today = new Date(`${getTodayLabel()}T12:00:00`);
+  const dayOffset = (today.getDay() + 6) % 7;
+  today.setDate(today.getDate() - dayOffset);
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function cloneLocalDataState(currentState) {
+  return {
+    ...structuredClone(currentState),
+    selectedStoreItemIds: Array.isArray(currentState.selectedStoreItemIds) ? [...currentState.selectedStoreItemIds] : [],
+    selectedNextListItemIds: Array.isArray(currentState.selectedNextListItemIds) ? [...currentState.selectedNextListItemIds] : []
+  };
+}
+
+function hasRemotePlannerData(remote) {
+  return Boolean(
+    remote.mealOptions.length
+    || remote.shoppingCategories.length
+    || remote.shoppingItems.length
+    || remote.stores.length
+    || remote.recipes.length
+    || remote.purchaseHistory.length
+    || remote.todayMealPlan
+    || remote.weekMealRows.length
+  );
+}
+
+async function loadRemoteState() {
+  if (!remoteSyncEnabled()) {
+    return null;
+  }
+
+  const supabaseClient = getSupabaseClient();
+  const currentWeekKey = getCurrentWeekKey();
+  const todayLabel = getTodayLabel();
+
+  const [
+    mealOptionsResult,
+    shoppingCategoriesResult,
+    storesResult,
+    shoppingItemsResult,
+    recipesResult,
+    todayMealPlanResult,
+    weekMealPlanResult,
+    purchaseHistoryResult
+  ] = await Promise.all([
+    supabaseClient.from("meal_options").select("id, meal_type, dish").eq("user_id", activeUserId).order("created_at", { ascending: true }),
+    supabaseClient.from("shopping_categories").select("id, name").eq("user_id", activeUserId).order("created_at", { ascending: true }),
+    supabaseClient.from("stores").select("id, name, color").eq("user_id", activeUserId).order("created_at", { ascending: true }),
+    supabaseClient.from("shopping_items").select("id, category_id, store_id, name, quantity, pantry_status").eq("user_id", activeUserId).order("created_at", { ascending: true }),
+    supabaseClient.from("recipes").select("id, meal_name, notes").eq("user_id", activeUserId).order("created_at", { ascending: true }),
+    supabaseClient.from("today_meal_plans").select("plan_date, breakfast_meal_id, lunch_meal_id, dinner_meal_id, snacks_meal_id").eq("user_id", activeUserId).eq("plan_date", todayLabel).maybeSingle(),
+    supabaseClient.from("week_meal_plans").select("day_name, breakfast_meal_id, lunch_meal_id, dinner_meal_id, snacks_meal_id").eq("user_id", activeUserId).eq("week_key", currentWeekKey),
+    supabaseClient.from("purchase_history").select("id, shopping_item_id, name, quantity, category_name, store_name, purchased_at").eq("user_id", activeUserId).order("purchased_at", { ascending: false }).order("created_at", { ascending: false })
+  ]);
+
+  const results = [
+    mealOptionsResult,
+    shoppingCategoriesResult,
+    storesResult,
+    shoppingItemsResult,
+    recipesResult,
+    todayMealPlanResult,
+    weekMealPlanResult,
+    purchaseHistoryResult
+  ];
+
+  const firstError = results.find((result) => result.error)?.error;
+  if (firstError) {
+    console.error("Could not load meal planner data from Supabase.", firstError);
+    return null;
+  }
+
+  const remote = {
+    mealOptions: (mealOptionsResult.data || []).map((row) => ({
+      id: row.id,
+      mealType: row.meal_type,
+      dish: row.dish,
+      notes: ""
+    })),
+    shoppingCategories: (shoppingCategoriesResult.data || []).map((row) => ({
+      id: row.id,
+      name: row.name
+    })),
+    stores: (storesResult.data || []).map((row) => ({
+      id: row.id,
+      name: row.name,
+      color: row.color || "#59636a"
+    })),
+    shoppingItems: (shoppingItemsResult.data || []).map((row) => ({
+      id: row.id,
+      name: row.name,
+      categoryId: row.category_id || "",
+      quantity: row.quantity || "1",
+      notes: "",
+      storeId: row.store_id || "",
+      pantryStatus: row.pantry_status || "unknown"
+    })),
+    recipes: (recipesResult.data || []).map((row) => ({
+      id: row.id,
+      mealName: row.meal_name,
+      notes: row.notes || ""
+    })),
+    todayMealPlan: todayMealPlanResult.data
+      ? {
+          date: todayMealPlanResult.data.plan_date,
+          selections: {
+            Breakfast: todayMealPlanResult.data.breakfast_meal_id || "",
+            Lunch: todayMealPlanResult.data.lunch_meal_id || "",
+            Dinner: todayMealPlanResult.data.dinner_meal_id || "",
+            Snacks: todayMealPlanResult.data.snacks_meal_id || ""
+          }
+        }
+      : null,
+    weekMealRows: weekMealPlanResult.data || [],
+    purchaseHistory: (purchaseHistoryResult.data || []).map((row) => ({
+      id: row.id,
+      itemId: row.shopping_item_id || "",
+      name: row.name || "Item",
+      categoryId: findCategoryIdByName(row.category_name, shoppingCategoriesResult.data || []),
+      quantity: row.quantity || "1",
+      storeId: findStoreIdByName(row.store_name, storesResult.data || []),
+      purchasedAt: row.purchased_at || getTodayLabel()
+    }))
+  };
+
+  if (!hasRemotePlannerData(remote)) {
+    return null;
+  }
+
+  const remoteState = normalizeState({
+    mealOptions: remote.mealOptions,
+    shoppingCategories: remote.shoppingCategories,
+    shoppingItems: remote.shoppingItems,
+    stores: remote.stores,
+    todayMealPlan: remote.todayMealPlan || createTodayMealPlan(),
+    weekMealPlan: buildWeekMealPlanFromRows(remote.weekMealRows),
+    recipes: remote.recipes,
+    sampleDataVersion: PROVIDED_SAMPLE_VERSION,
+    selectedStoreItemIds: [],
+    selectedNextListItemIds: [],
+    purchaseHistory: remote.purchaseHistory
+  });
+
+  remoteState.sampleDataVersion = PROVIDED_SAMPLE_VERSION;
+  return remoteState;
+}
+
+function buildWeekMealPlanFromRows(rows) {
+  const plan = createWeekMealPlan();
+
+  rows.forEach((row) => {
+    if (!plan[row.day_name]) {
+      return;
+    }
+
+    plan[row.day_name] = {
+      Breakfast: row.breakfast_meal_id || "",
+      Lunch: row.lunch_meal_id || "",
+      Dinner: row.dinner_meal_id || "",
+      Snacks: row.snacks_meal_id || ""
+    };
+  });
+
+  return plan;
+}
+
+function findCategoryIdByName(name, categoryRows) {
+  if (!name) {
+    return "";
+  }
+  return categoryRows.find((row) => row.name === name)?.id || "";
+}
+
+function findStoreIdByName(name, storeRows) {
+  if (!name) {
+    return "";
+  }
+  return storeRows.find((row) => row.name === name)?.id || "";
+}
+
+async function replaceUserTable(tableName, rows, onConflict = "id") {
+  const supabaseClient = getSupabaseClient();
+  if (!supabaseClient || !activeUserId) {
+    return;
+  }
+
+  if (rows.length) {
+    const { error } = await supabaseClient.from(tableName).upsert(rows, { onConflict });
+    if (error) {
+      throw error;
+    }
+  }
+
+  if (onConflict === "id") {
+    const ids = rows.map((row) => row.id).filter(Boolean);
+    let deleteQuery = supabaseClient.from(tableName).delete().eq("user_id", activeUserId);
+    if (ids.length) {
+      deleteQuery = deleteQuery.not("id", "in", `(${ids.map((id) => `"${id}"`).join(",")})`);
+    }
+    const { error } = await deleteQuery;
+    if (error) {
+      throw error;
+    }
+  }
+}
+
+async function syncStateToSupabase() {
+  if (!remoteSyncEnabled()) {
+    return;
+  }
+
+  const supabaseClient = getSupabaseClient();
+  const todayPlan = state.todayMealPlan || createTodayMealPlan();
+  const weekKey = getCurrentWeekKey();
+
+  const mealOptionRows = state.mealOptions.map((item) => ({
+    id: item.id,
+    user_id: activeUserId,
+    meal_type: item.mealType,
+    dish: item.dish
+  }));
+
+  const shoppingCategoryRows = state.shoppingCategories.map((category) => ({
+    id: category.id,
+    user_id: activeUserId,
+    name: category.name
+  }));
+
+  const storeRows = state.stores.map((store) => ({
+    id: store.id,
+    user_id: activeUserId,
+    name: store.name,
+    color: store.color
+  }));
+
+  const shoppingItemRows = state.shoppingItems.map((item) => ({
+    id: item.id,
+    user_id: activeUserId,
+    category_id: item.categoryId || null,
+    store_id: item.storeId || null,
+    name: item.name,
+    quantity: item.quantity || "1",
+    pantry_status: item.pantryStatus || "unknown"
+  }));
+
+  const recipeRows = state.recipes.map((recipe) => ({
+    id: recipe.id,
+    user_id: activeUserId,
+    meal_name: recipe.mealName,
+    notes: recipe.notes || ""
+  }));
+
+  const purchaseHistoryRows = state.purchaseHistory.map((entry) => ({
+    id: entry.id,
+    user_id: activeUserId,
+    shopping_item_id: entry.itemId || null,
+    name: entry.name,
+    quantity: entry.quantity || "1",
+    category_name: findCategory(entry.categoryId)?.name || null,
+    store_name: findStore(entry.storeId)?.name || null,
+    purchased_at: entry.purchasedAt || getTodayLabel()
+  }));
+
+  await replaceUserTable("meal_options", mealOptionRows);
+  await replaceUserTable("shopping_categories", shoppingCategoryRows);
+  await replaceUserTable("stores", storeRows);
+  await replaceUserTable("shopping_items", shoppingItemRows);
+  await replaceUserTable("recipes", recipeRows);
+  await replaceUserTable("purchase_history", purchaseHistoryRows);
+
+  const todaySelections = todayPlan.selections || createMealSelections();
+  const todayRow = {
+    user_id: activeUserId,
+    plan_date: todayPlan.date,
+    breakfast_meal_id: todaySelections.Breakfast || null,
+    lunch_meal_id: todaySelections.Lunch || null,
+    dinner_meal_id: todaySelections.Dinner || null,
+    snacks_meal_id: todaySelections.Snacks || null
+  };
+  const todayUpsert = await supabaseClient.from("today_meal_plans").upsert(todayRow, {
+    onConflict: "user_id,plan_date"
+  });
+  if (todayUpsert.error) {
+    throw todayUpsert.error;
+  }
+
+  const weekRows = weekDays.map((day) => ({
+    user_id: activeUserId,
+    week_key: weekKey,
+    day_name: day,
+    breakfast_meal_id: state.weekMealPlan[day]?.Breakfast || null,
+    lunch_meal_id: state.weekMealPlan[day]?.Lunch || null,
+    dinner_meal_id: state.weekMealPlan[day]?.Dinner || null,
+    snacks_meal_id: state.weekMealPlan[day]?.Snacks || null
+  }));
+  const weekUpsert = await supabaseClient.from("week_meal_plans").upsert(weekRows, {
+    onConflict: "user_id,week_key,day_name"
+  });
+  if (weekUpsert.error) {
+    throw weekUpsert.error;
+  }
+
+  const weekDelete = await supabaseClient
+    .from("week_meal_plans")
+    .delete()
+    .eq("user_id", activeUserId)
+    .neq("week_key", weekKey);
+  if (weekDelete.error) {
+    throw weekDelete.error;
+  }
+}
+
+function syncNextListSelection() {
+  const neededItemIds = new Set(
+    state.shoppingItems
+      .filter((item) => item.pantryStatus === "need")
+      .map((item) => item.id)
+  );
+
+  state.selectedNextListItemIds = state.selectedNextListItemIds.filter((id) => neededItemIds.has(id));
+}
+
 function saveAndRender() {
   state.todayMealPlan = normalizeTodayMealPlan(state.todayMealPlan, new Set(state.mealOptions.map((item) => item.id)));
   state.weekMealPlan = normalizeWeekMealPlan(state.weekMealPlan, new Set(state.mealOptions.map((item) => item.id)));
+  syncNextListSelection();
   persistState();
+  if (!skipRemoteSync) {
+    void syncStateToSupabase().catch((error) => {
+      console.error("Could not sync meal planner data to Supabase.", error);
+    });
+  }
   renderMealBoard();
   renderMealDeleteSelect();
   renderRecipeBoard();
@@ -1375,13 +1758,35 @@ function createStoreColumn(title, color, items, emptyMessage) {
 
 function createNextListStoreColumn(title, color, items, emptyMessage) {
   const column = createStoreColumn(title, color, [], emptyMessage);
+  const head = column.querySelector(".store-column-head");
   const body = column.querySelector(".store-column-body");
+  const allSelected = items.length > 0 && items.every((item) => state.selectedNextListItemIds.includes(item.id));
+  head.innerHTML = `
+    <div class="column-head-row">
+      <h3>${escapeHtml(title)}</h3>
+      <button type="button" class="ghost-button select-all-button">${allSelected ? "Unselect all" : "Select all"}</button>
+    </div>
+  `;
   body.innerHTML = "";
 
   if (!items.length) {
+    head.querySelector(".select-all-button").disabled = true;
     body.append(createEmptyState(emptyMessage));
     return column;
   }
+
+  head.querySelector(".select-all-button").addEventListener("click", () => {
+    if (allSelected) {
+      const itemIds = new Set(items.map((item) => item.id));
+      state.selectedNextListItemIds = state.selectedNextListItemIds.filter((id) => !itemIds.has(id));
+    } else {
+      state.selectedNextListItemIds = [...new Set([
+        ...state.selectedNextListItemIds,
+        ...items.map((item) => item.id)
+      ])];
+    }
+    saveAndRender();
+  });
 
   items.forEach((item) => {
     const row = document.createElement("div");
@@ -1396,23 +1801,24 @@ function createNextListStoreColumn(title, color, items, emptyMessage) {
       </div>
     `;
 
-    const purchaseLabel = document.createElement("label");
-    purchaseLabel.className = "purchase-check";
-    purchaseLabel.innerHTML = `<input type="checkbox"> Purchased`;
-    purchaseLabel.querySelector("input").addEventListener("change", () => {
-      state.purchaseHistory.unshift({
-        id: crypto.randomUUID(),
-        itemId: item.id,
-        name: item.name,
-        categoryId: item.categoryId,
-        quantity: item.quantity,
-        storeId: item.storeId,
-        purchasedAt: getTodayLabel()
-      });
-      item.pantryStatus = "purchased";
-      saveAndRender();
+    const selectWrap = document.createElement("label");
+    selectWrap.className = "purchase-check";
+    selectWrap.innerHTML = `
+      <input type="checkbox" />
+      <span>Select</span>
+    `;
+    const checkbox = selectWrap.querySelector("input");
+    checkbox.checked = state.selectedNextListItemIds.includes(item.id);
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) {
+        state.selectedNextListItemIds = [...new Set([...state.selectedNextListItemIds, item.id])];
+      } else {
+        state.selectedNextListItemIds = state.selectedNextListItemIds.filter((id) => id !== item.id);
+      }
+      persistState();
     });
-    row.querySelector(".store-item-controls").append(purchaseLabel);
+
+    row.querySelector(".store-item-controls").append(selectWrap);
     body.append(row);
   });
 
@@ -1830,7 +2236,12 @@ async function initApp() {
       return;
     }
 
-    state = ensureProvidedSampleData(loadState());
+    activeUserId = authApi.getCurrentUserId?.() || session?.user?.id || "";
+    const localState = ensureProvidedSampleData(loadState());
+    const remoteState = await loadRemoteState();
+    skipRemoteSync = true;
+    state = remoteState ? ensureProvidedSampleData(remoteState) : localState;
+    skipRemoteSync = false;
   } else if (document.body?.classList.contains("auth-pending")) {
     document.body.classList.remove("auth-pending");
   }

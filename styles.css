@@ -361,6 +361,14 @@ h1 {
   gap: 16px;
 }
 
+.auth-recovery-copy h2 {
+  margin: 0 0 10px;
+}
+
+.update-password-form {
+  margin-top: 4px;
+}
+
 .password-field {
   position: relative;
 }
@@ -412,6 +420,10 @@ h1 {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+}
+
+.auth-actions-row .ghost-button {
+  min-height: 50px;
 }
 
 .auth-message {
@@ -608,6 +620,20 @@ textarea {
 .select-all-button {
   padding: 6px 10px;
   font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.22);
+  color: white;
+  font-weight: 800;
+  box-shadow: inset 0 0 0 1px rgba(36, 21, 58, 0.12);
+  text-shadow: 0 1px 1px rgba(36, 21, 58, 0.18);
+}
+
+.select-all-button:hover {
+  background: rgba(255, 255, 255, 0.34);
+}
+
+.select-all-button:disabled {
+  opacity: 0.55;
+  cursor: default;
 }
 
 .sheet-column-body,
@@ -744,6 +770,7 @@ textarea {
   display: grid;
   min-width: 120px;
   justify-items: end;
+  gap: 8px;
 }
 
 .unassign-button {
@@ -859,6 +886,7 @@ textarea {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  justify-content: flex-end;
   padding: 7px 10px;
   border-radius: 999px;
   background: rgba(176, 75, 255, 0.1);
@@ -869,6 +897,23 @@ textarea {
 
 .purchase-check input {
   width: auto;
+}
+
+.purchase-action {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+}
+
+.purchase-log-button {
+  padding: 8px 12px;
+  min-width: 0;
+  box-shadow: none;
+}
+
+.purchase-date-copy {
+  font-size: 0.78rem;
+  color: var(--muted);
 }
 
 .report-stats {
