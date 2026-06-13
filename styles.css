@@ -1105,6 +1105,10 @@ textarea {
 }
 
 @media (max-width: 920px) {
+  .hero {
+    display: none;
+  }
+
   .meal-layout,
   .recipe-layout,
   .shopping-layout,
