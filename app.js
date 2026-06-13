@@ -53,6 +53,7 @@ const mobileMenuClose = document.querySelector("#mobile-menu-close");
 const mobileNavBackdrop = document.querySelector("#mobile-nav-backdrop");
 const mealControlsCard = document.querySelector("#meal-controls-card");
 const toggleMealControlsButton = document.querySelector("#toggle-meal-controls");
+const accountButton = document.querySelector("#account-button");
 const mealForm = document.querySelector("#meal-form");
 const mealDeleteForm = document.querySelector("#meal-delete-form");
 const recipeForm = document.querySelector("#recipe-form");
@@ -99,6 +100,7 @@ const storeChips = document.querySelector("#store-chips");
 const bulkStoreSelect = document.querySelector("#bulk-store-select");
 const assignSelectedItemsButton = document.querySelector("#assign-selected-items");
 const clearSelectedItemsButton = document.querySelector("#clear-selected-items");
+const drawerAccountButton = document.querySelector("#drawer-account-button");
 const drawerLogoutButton = document.querySelector("#drawer-logout-button");
 
 const mealColumnTemplate = document.querySelector("#meal-column-template");
@@ -112,6 +114,13 @@ tabButtons.forEach((button) => {
 mobileMenuButton?.addEventListener("click", () => setMobileMenuOpen(true));
 mobileMenuClose?.addEventListener("click", () => setMobileMenuOpen(false));
 mobileNavBackdrop?.addEventListener("click", () => setMobileMenuOpen(false));
+accountButton?.addEventListener("click", () => {
+  window.location.href = "login.html";
+});
+drawerAccountButton?.addEventListener("click", () => {
+  setMobileMenuOpen(false);
+  window.location.href = "login.html";
+});
 toggleMealControlsButton?.addEventListener("click", () => {
   const nextCollapsed = !mealControlsCard?.classList.contains("is-collapsed");
   setMealControlsCollapsed(nextCollapsed);
