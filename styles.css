@@ -612,6 +612,12 @@ h1 {
   font-weight: 700;
 }
 
+.shopping-search-field {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
 .recipe-form-status {
   margin-top: -4px;
 }

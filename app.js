@@ -56,6 +56,7 @@ const todayPlanBoard = document.querySelector("#today-plan-board");
 const weekPlanBoard = document.querySelector("#week-plan-board");
 const shoppingBoard = document.querySelector("#shopping-board");
 const shoppingCategoryTabs = document.querySelector("#shopping-category-tabs");
+const shoppingSearchInput = document.querySelector("#shopping-search");
 const storeSourceBoard = document.querySelector("#store-source-board");
 const storeBoard = document.querySelector("#store-board");
 const storeJumpTabs = document.querySelector("#store-jump-tabs");
@@ -112,6 +113,10 @@ drawerLogoutButton?.addEventListener("click", () => {
 });
 
 pantrySearchInput.addEventListener("input", () => renderPantryBoard());
+shoppingSearchInput?.addEventListener("input", () => {
+  renderShoppingCategoryTabs();
+  renderShoppingBoard();
+});
 
 clearReportHistoryButton.addEventListener("click", () => {
   state.purchaseHistory = [];
@@ -1196,16 +1201,20 @@ function renderShoppingCategoryEditor() {
 
 function renderShoppingBoard() {
   shoppingBoard.innerHTML = "";
+  const shoppingSearchText = shoppingSearchInput?.value.trim().toLowerCase() || "";
 
   const categoriesWithItems = state.shoppingCategories
     .map((category) => ({
       category,
-      items: state.shoppingItems.filter((item) => item.categoryId === category.id)
+      items: state.shoppingItems.filter((item) =>
+        item.categoryId === category.id
+        && (!shoppingSearchText || item.name.toLowerCase().includes(shoppingSearchText))
+      )
     }))
     .filter(({ items }) => items.length > 0);
 
   if (!categoriesWithItems.length) {
-    shoppingBoard.append(createEmptyState("No shopping categories with items yet."));
+    shoppingBoard.append(createEmptyState("No shopping items match your search."));
     return;
   }
 
@@ -1222,9 +1231,15 @@ function renderShoppingBoard() {
 
 function renderShoppingCategoryTabs() {
   shoppingCategoryTabs.innerHTML = "";
+  const shoppingSearchText = shoppingSearchInput?.value.trim().toLowerCase() || "";
 
   const categoriesWithItems = state.shoppingCategories
-    .filter((category) => state.shoppingItems.some((item) => item.categoryId === category.id));
+    .filter((category) =>
+      state.shoppingItems.some((item) =>
+        item.categoryId === category.id
+        && (!shoppingSearchText || item.name.toLowerCase().includes(shoppingSearchText))
+      )
+    );
 
   categoriesWithItems.forEach((category) => {
     const button = document.createElement("button");
