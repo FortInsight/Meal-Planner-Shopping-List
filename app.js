@@ -7,43 +7,8 @@ const LEGACY_STORAGE_KEYS = [
 
 const mealTypes = ["Breakfast", "Lunch", "Dinner", "Snacks"];
 const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-const PROVIDED_SAMPLE_VERSION = "2026-06-06-user-sheet-1";
-const PROVIDED_MEALS = {
-  Breakfast: ["Cornflakes", "Bread & Salad", "Pap & Milk", "Pap & Akara", "Oats & Milk", "Bread & Egg"],
-  Lunch: ["Rice & Vegetable", "Rice & Beans", "Swallow & Egunsi", "Swallow & Okra", "Swallow & Afang", "Jollof Rice", "Bread & Salad", "Rice & Stew & Avocado"],
-  Dinner: ["Fries", "Pasta", "Swallow & Egunsi", "Swallow & Okra", "Swallow & Afang", "macs & cheese", "Pan Cake"],
-  Snacks: ["puffpuff", "cake", "cookie", "Kids cookie", "Pop corn"]
-};
-const PROVIDED_SHOPPING_CATEGORIES = {
-  Grocery: [
-    "Bread", "salad cream", "egg", "barbecue sauce", "tintomato", "cheese", "flour", "baking powder",
-    "white milk", "brown milk", "almond milk", "spaghetti", "macaroni", "cornflakes", "potato fries",
-    "yeast", "oats", "kids cookie", "butter", "sugar", "honey", "minced meat", "vanilla extract",
-    "thyme", "curry", "rosemary", "lemonade", "baking soda", "nutmeg", "salt", "olive oil",
-    "canola oil", "rice basmati", "chicken", "pasta", "maggi", "Wine", "Drinks", "Disposable plates",
-    "Disposable cups", "Pan Cake Mix", "Fresh Fish", "Foil paper", "parchment paper", "dispenser water",
-    "bounty snack", "Doritos snack"
-  ],
-  Vegetable: [
-    "Tomato", "pepper", "onion", "Tatase", "carrot", "avocado", "garlic", "ginger", "bay leaves",
-    "salad", "okra", "Fresh spinach", "Plantain", "Beetroot"
-  ],
-  "African Store": [
-    "palm oil", "dry pepper", "iru", "dry fish", "egunsi", "afang", "Frozen Spinach", "meat",
-    "crayfish", "regular rice", "Beans", "Garri", "poundo flour", "pap", "paprika", "smoke turkey", "Ogbono"
-  ],
-  "Toiletries & Cleaning": [
-    "Tissue paper", "Paper towel", "Toothpaste", "Toothbrush", "Shower Soap", "Dish washer soap",
-    "Laundry detergent", "Bleach", "Sponge", "Shampoo", "Conditioner", "Deodorant", "Body oil",
-    "Dish liquid soap", "Hand washing soap", "Toilets disinfectant", "Bathroom washer", "Cotton bud",
-    "Mop pads", "Mop liquid", "Trash bags big", "Trash bag small", "Trash bag disposable", "Glass cleaner",
-    "Disinfectant wipes", "Mouth wash", "Sanitory pad (day and night)", "Mouth floss"
-  ]
-};
-
 const starterData = createStarterData();
 let state = loadState();
-state = ensureProvidedSampleData(state);
 let activeUserId = "";
 let skipRemoteSync = false;
 
@@ -364,40 +329,15 @@ copyNextListButton.addEventListener("click", async () => {
 });
 
 function createStarterData() {
-  const groceryId = crypto.randomUUID();
-  const vegetableId = crypto.randomUUID();
-  const africanCategoryId = crypto.randomUUID();
-  const cleaningId = crypto.randomUUID();
-
-  const costcoId = crypto.randomUUID();
-  const africanStoreId = crypto.randomUUID();
-  const nofrillsId = crypto.randomUUID();
-  const dollaramaId = crypto.randomUUID();
-
   return {
-    mealOptions: buildProvidedMealOptions(),
-    shoppingCategories: [
-      { id: groceryId, name: "Grocery" },
-      { id: vegetableId, name: "Vegetable" },
-      { id: africanCategoryId, name: "African Store" },
-      { id: cleaningId, name: "Cleaning & Toiletries" }
-    ],
-    shoppingItems: buildProvidedShoppingItems({
-      Grocery: groceryId,
-      Vegetable: vegetableId,
-      "African Store": africanCategoryId,
-      "Toiletries & Cleaning": cleaningId
-    }),
-    stores: [
-      { id: costcoId, name: "Costco", color: "#2d8fcb" },
-      { id: africanStoreId, name: "African Store", color: "#b5621c" },
-      { id: nofrillsId, name: "NoFrills", color: "#32ad44" },
-      { id: dollaramaId, name: "Dollarama", color: "#7a4bcc" }
-    ],
+    mealOptions: [],
+    shoppingCategories: [],
+    shoppingItems: [],
+    stores: [],
     todayMealPlan: createTodayMealPlan(),
     weekMealPlan: createWeekMealPlan(),
     recipes: [],
-    sampleDataVersion: PROVIDED_SAMPLE_VERSION,
+    sampleDataVersion: "",
     selectedStoreItemIds: [],
     selectedNextListItemIds: [],
     purchaseHistory: []
@@ -494,7 +434,7 @@ function normalizeState(raw) {
     ? raw.shoppingItems.map((item) => ({
         id: item.id || crypto.randomUUID(),
         name: item.name || "Item",
-        categoryId: item.categoryId || shoppingCategories[0].id,
+        categoryId: item.categoryId || shoppingCategories[0]?.id || "",
         quantity: item.quantity || "1",
         notes: item.notes || "",
         storeId: item.storeId || "",
@@ -571,106 +511,6 @@ function normalizeState(raw) {
         }))
       : []
   };
-}
-
-function ensureProvidedSampleData(currentState) {
-  if (currentState.sampleDataVersion === PROVIDED_SAMPLE_VERSION) {
-    return currentState;
-  }
-
-  const nextState = {
-    ...currentState,
-    mealOptions: [...currentState.mealOptions],
-    shoppingCategories: [...currentState.shoppingCategories],
-    shoppingItems: [...currentState.shoppingItems],
-    stores: [...currentState.stores]
-  };
-
-  Object.entries(PROVIDED_MEALS).forEach(([mealType, dishes]) => {
-    dishes.forEach((dish) => {
-      const exists = nextState.mealOptions.some(
-        (item) => item.mealType === mealType && item.dish.trim().toLowerCase() === dish.trim().toLowerCase()
-      );
-      if (!exists) {
-        nextState.mealOptions.push({ id: crypto.randomUUID(), mealType, dish, notes: "" });
-      }
-    });
-  });
-
-  ["Costco", "African Store", "NoFrills", "Dollarama"].forEach((storeName, index) => {
-    const exists = nextState.stores.some((store) => store.name.trim().toLowerCase() === storeName.toLowerCase());
-    if (!exists) {
-      const colors = ["#2d8fcb", "#b5621c", "#32ad44", "#7a4bcc"];
-      nextState.stores.push({ id: crypto.randomUUID(), name: storeName, color: colors[index] });
-    }
-  });
-
-  const categoryNameMap = {
-    Grocery: "Grocery",
-    Vegetable: "Vegetable",
-    "African Store": "African Store",
-    "Toiletries & Cleaning": "Toiletries & Cleaning"
-  };
-
-  const categoryIds = {};
-  Object.entries(categoryNameMap).forEach(([sourceName, targetName]) => {
-    let category = nextState.shoppingCategories.find(
-      (item) => item.name.trim().toLowerCase() === targetName.toLowerCase()
-    );
-    if (!category) {
-      category = { id: crypto.randomUUID(), name: targetName };
-      nextState.shoppingCategories.push(category);
-    }
-    categoryIds[sourceName] = category.id;
-  });
-
-  Object.entries(PROVIDED_SHOPPING_CATEGORIES).forEach(([categoryName, items]) => {
-    items.forEach((name) => {
-      const exists = nextState.shoppingItems.some(
-        (item) => item.name.trim().toLowerCase() === name.trim().toLowerCase()
-          && item.categoryId === categoryIds[categoryName]
-      );
-      if (!exists) {
-        nextState.shoppingItems.push({
-          id: crypto.randomUUID(),
-          name,
-          categoryId: categoryIds[categoryName],
-          quantity: "1",
-          notes: "",
-          storeId: "",
-          pantryStatus: "unknown"
-        });
-      }
-    });
-  });
-
-  nextState.sampleDataVersion = PROVIDED_SAMPLE_VERSION;
-  return nextState;
-}
-
-function buildProvidedMealOptions() {
-  return Object.entries(PROVIDED_MEALS).flatMap(([mealType, dishes]) =>
-    dishes.map((dish) => ({
-      id: crypto.randomUUID(),
-      mealType,
-      dish,
-      notes: ""
-    }))
-  );
-}
-
-function buildProvidedShoppingItems(categoryIds) {
-  return Object.entries(PROVIDED_SHOPPING_CATEGORIES).flatMap(([categoryName, items]) =>
-    items.map((name) => ({
-      id: crypto.randomUUID(),
-      name,
-      categoryId: categoryIds[categoryName],
-      quantity: "1",
-      notes: "",
-      storeId: "",
-      pantryStatus: "unknown"
-    }))
-  );
 }
 
 function persistState() {
@@ -827,13 +667,12 @@ async function loadRemoteState() {
     todayMealPlan: remote.todayMealPlan || createTodayMealPlan(),
     weekMealPlan: buildWeekMealPlanFromRows(remote.weekMealRows),
     recipes: remote.recipes,
-    sampleDataVersion: PROVIDED_SAMPLE_VERSION,
+    sampleDataVersion: "",
     selectedStoreItemIds: [],
     selectedNextListItemIds: [],
     purchaseHistory: remote.purchaseHistory
   });
 
-  remoteState.sampleDataVersion = PROVIDED_SAMPLE_VERSION;
   return remoteState;
 }
 
@@ -1442,19 +1281,25 @@ function renderStoreSourceBoard() {
   categoryGroups.forEach(({ category, items }) => {
       const column = mealColumnTemplate.content.firstElementChild.cloneNode(true);
       const head = column.querySelector(".sheet-column-head");
+      const allSelected = items.length > 0 && items.every((item) => state.selectedStoreItemIds.includes(item.id));
       head.innerHTML = `
         <div class="column-head-row">
           <h3>${escapeHtml(category.name)}</h3>
-          <button type="button" class="ghost-button select-all-button">Select all</button>
+          <button type="button" class="ghost-button select-all-button">${allSelected ? "Unselect all" : "Select all"}</button>
         </div>
       `;
       const body = column.querySelector(".sheet-column-body");
 
       head.querySelector(".select-all-button").addEventListener("click", () => {
-        state.selectedStoreItemIds = [...new Set([
-          ...state.selectedStoreItemIds,
-          ...items.map((item) => item.id)
-        ])];
+        if (allSelected) {
+          const itemIds = new Set(items.map((item) => item.id));
+          state.selectedStoreItemIds = state.selectedStoreItemIds.filter((id) => !itemIds.has(id));
+        } else {
+          state.selectedStoreItemIds = [...new Set([
+            ...state.selectedStoreItemIds,
+            ...items.map((item) => item.id)
+          ])];
+        }
         saveAndRender();
       });
 
@@ -2237,10 +2082,10 @@ async function initApp() {
     }
 
     activeUserId = authApi.getCurrentUserId?.() || session?.user?.id || "";
-    const localState = ensureProvidedSampleData(loadState());
+    const localState = loadState();
     const remoteState = await loadRemoteState();
     skipRemoteSync = true;
-    state = remoteState ? ensureProvidedSampleData(remoteState) : localState;
+    state = remoteState || localState;
     skipRemoteSync = false;
   } else if (document.body?.classList.contains("auth-pending")) {
     document.body.classList.remove("auth-pending");

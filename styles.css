@@ -620,15 +620,15 @@ textarea {
 .select-all-button {
   padding: 6px 10px;
   font-size: 0.85rem;
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(101, 61, 142, 0.72);
   color: white;
   font-weight: 800;
-  box-shadow: inset 0 0 0 1px rgba(36, 21, 58, 0.12);
-  text-shadow: 0 1px 1px rgba(36, 21, 58, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  text-shadow: 0 1px 1px rgba(36, 21, 58, 0.28);
 }
 
 .select-all-button:hover {
-  background: rgba(255, 255, 255, 0.34);
+  background: rgba(101, 61, 142, 0.84);
 }
 
 .select-all-button:disabled {
