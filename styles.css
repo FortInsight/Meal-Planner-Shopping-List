@@ -1184,6 +1184,10 @@ textarea {
     z-index: 40;
   }
 
+  .auth-hero-stat {
+    display: none;
+  }
+
   .mobile-topbar strong,
   .auth-mobile-topbar strong {
     font-family: "Fraunces", serif;
