@@ -49,13 +49,28 @@ const tabButtons = document.querySelectorAll(".tab-button");
 const panels = document.querySelectorAll(".tab-panel");
 const mealForm = document.querySelector("#meal-form");
 const mealDeleteForm = document.querySelector("#meal-delete-form");
+const recipeForm = document.querySelector("#recipe-form");
+const recipeMealNameInput = document.querySelector("#recipe-meal-name");
+const recipeNotesInput = document.querySelector("#recipe-notes");
+const recipeFormStatus = document.querySelector("#recipe-form-status");
+const saveRecipeButton = document.querySelector("#save-recipe-button");
 const categoryForm = document.querySelector("#category-form");
 const shoppingForm = document.querySelector("#shopping-form");
 const shoppingDeleteForm = document.querySelector("#shopping-delete-form");
 const shoppingCategoryForm = document.querySelector("#shopping-category-form");
 const storeForm = document.querySelector("#store-form");
 const storeColorOkButton = document.querySelector("#store-color-ok");
+const copyRecipesButton = document.querySelector("#copy-recipes-button");
+const downloadRecipesButton = document.querySelector("#download-recipes-button");
+const recipeShareStatus = document.querySelector("#recipe-share-status");
+const copyShoppingButton = document.querySelector("#copy-shopping-button");
+const downloadShoppingButton = document.querySelector("#download-shopping-button");
+const shoppingShareStatus = document.querySelector("#shopping-share-status");
+const copyNextListButton = document.querySelector("#copy-next-list-button");
+const downloadNextListButton = document.querySelector("#download-next-list-button");
+const nextListShareStatus = document.querySelector("#next-list-share-status");
 const mealBoard = document.querySelector("#meal-board");
+const recipeBoard = document.querySelector("#recipe-board");
 const todayPlanBoard = document.querySelector("#today-plan-board");
 const weekPlanBoard = document.querySelector("#week-plan-board");
 const shoppingBoard = document.querySelector("#shopping-board");
@@ -124,6 +139,39 @@ mealDeleteForm.addEventListener("submit", (event) => {
     return;
   }
   state.mealOptions = state.mealOptions.filter((item) => item.id !== mealId);
+  saveAndRender();
+});
+
+recipeMealNameInput.addEventListener("input", () => {
+  syncRecipeFormFromMealName();
+});
+
+recipeForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const mealName = recipeMealNameInput.value.trim();
+  const notes = recipeNotesInput.value.trim();
+  if (!mealName || !notes) {
+    return;
+  }
+
+  const existingRecipe = state.recipes.find(
+    (item) => item.mealName.trim().toLowerCase() === mealName.toLowerCase()
+  );
+
+  if (existingRecipe) {
+    state.recipes = state.recipes.map((item) =>
+      item.id === existingRecipe.id ? { ...item, mealName, notes } : item
+    );
+  } else {
+    state.recipes.unshift({
+      id: crypto.randomUUID(),
+      mealName,
+      notes
+    });
+  }
+
+  recipeForm.reset();
+  syncRecipeFormFromMealName();
   saveAndRender();
 });
 
@@ -210,6 +258,39 @@ clearSelectedItemsButton.addEventListener("click", () => {
   saveAndRender();
 });
 
+copyRecipesButton.addEventListener("click", async () => {
+  const text = buildRecipesShareText();
+  const copied = await copyTextToClipboard(text);
+  setShareStatus(recipeShareStatus, copied ? "Recipes copied." : "Could not copy recipes on this device.");
+});
+
+downloadRecipesButton.addEventListener("click", () => {
+  downloadTextFile("meal-planner-recipes.txt", buildRecipesShareText());
+  setShareStatus(recipeShareStatus, "Recipe file downloaded.");
+});
+
+copyShoppingButton.addEventListener("click", async () => {
+  const text = buildShoppingShareText();
+  const copied = await copyTextToClipboard(text);
+  setShareStatus(shoppingShareStatus, copied ? "Shopping list copied." : "Could not copy shopping list on this device.");
+});
+
+downloadShoppingButton.addEventListener("click", () => {
+  downloadTextFile("meal-planner-shopping-list.txt", buildShoppingShareText());
+  setShareStatus(shoppingShareStatus, "Shopping list file downloaded.");
+});
+
+copyNextListButton.addEventListener("click", async () => {
+  const text = buildNextListShareText();
+  const copied = await copyTextToClipboard(text);
+  setShareStatus(nextListShareStatus, copied ? "Next list copied." : "Could not copy next list on this device.");
+});
+
+downloadNextListButton.addEventListener("click", () => {
+  downloadTextFile("meal-planner-next-list.txt", buildNextListShareText());
+  setShareStatus(nextListShareStatus, "Next list file downloaded.");
+});
+
 function createStarterData() {
   const groceryId = crypto.randomUUID();
   const vegetableId = crypto.randomUUID();
@@ -243,6 +324,7 @@ function createStarterData() {
     ],
     todayMealPlan: createTodayMealPlan(),
     weekMealPlan: createWeekMealPlan(),
+    recipes: [],
     sampleDataVersion: PROVIDED_SAMPLE_VERSION,
     selectedStoreItemIds: [],
     purchaseHistory: []
@@ -353,6 +435,20 @@ function normalizeState(raw) {
       .filter(Boolean)
   );
 
+  const mealOptionSource = Array.isArray(raw.mealOptions)
+    ? raw.mealOptions
+    : Array.isArray(raw.meals)
+      ? raw.meals
+      : starterData.mealOptions;
+
+  const migratedRecipes = mealOptionSource
+    .filter((item) => (item.notes || "").trim())
+    .map((item) => ({
+      id: crypto.randomUUID(),
+      mealName: item.dish || "Meal",
+      notes: item.notes || ""
+    }));
+
   return {
     mealOptions: Array.isArray(raw.mealOptions)
       ? raw.mealOptions.map((item) => ({
@@ -380,6 +476,13 @@ function normalizeState(raw) {
       : structuredClone(starterData.stores),
     todayMealPlan: normalizeTodayMealPlan(raw.todayMealPlan, validMealIdSet),
     weekMealPlan: normalizeWeekMealPlan(raw.weekMealPlan, validMealIdSet),
+    recipes: Array.isArray(raw.recipes)
+      ? raw.recipes.map((item) => ({
+          id: item.id || crypto.randomUUID(),
+          mealName: item.mealName || item.name || "Meal",
+          notes: item.notes || ""
+        }))
+      : migratedRecipes,
     sampleDataVersion: raw.sampleDataVersion || "",
     selectedStoreItemIds: Array.isArray(raw.selectedStoreItemIds) ? raw.selectedStoreItemIds : [],
     purchaseHistory: Array.isArray(raw.purchaseHistory)
@@ -506,6 +609,8 @@ function saveAndRender() {
   persistState();
   renderMealBoard();
   renderMealDeleteSelect();
+  renderRecipeBoard();
+  syncRecipeFormFromMealName();
   renderTodayMealPlan();
   renderWeekMealPlan();
   renderShoppingCategorySelect();
@@ -546,6 +651,45 @@ function renderMealBoard() {
 
     mealBoard.append(column);
   });
+}
+
+function renderRecipeBoard() {
+  recipeBoard.innerHTML = "";
+
+  const recipes = state.recipes
+    .filter((item) => item.mealName.trim() && item.notes.trim())
+    .slice()
+    .sort((left, right) => left.mealName.localeCompare(right.mealName));
+
+  if (!recipes.length) {
+    recipeBoard.append(createEmptyState("No recipe notes yet."));
+  } else {
+    recipes.forEach((recipe) => recipeBoard.append(createRecipeNoteItem(recipe)));
+  }
+}
+
+function syncRecipeFormFromMealName() {
+  const mealName = recipeMealNameInput.value.trim().toLowerCase();
+  const existingRecipe = state.recipes.find(
+    (item) => item.mealName.trim().toLowerCase() === mealName
+  );
+
+  if (!mealName) {
+    recipeFormStatus.textContent = "";
+    saveRecipeButton.textContent = "Save recipe note";
+    return;
+  }
+
+  if (existingRecipe) {
+    if (document.activeElement !== recipeNotesInput) {
+      recipeNotesInput.value = existingRecipe.notes;
+    }
+    recipeFormStatus.textContent = "Recipe found. You can update it here.";
+    saveRecipeButton.textContent = "Update recipe note";
+  } else {
+    recipeFormStatus.textContent = "This will save as a new recipe.";
+    saveRecipeButton.textContent = "Save recipe note";
+  }
 }
 
 function renderTodayMealPlan() {
@@ -1257,6 +1401,25 @@ function createSimpleItem(title) {
   return card;
 }
 
+function createRecipeNoteItem(recipe) {
+  const card = document.createElement("article");
+  card.className = "recipe-note";
+  const listItems = recipe.notes
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => `<li>${escapeHtml(line.replace(/^[\-\u2022]\s*/, ""))}</li>`)
+    .join("");
+
+  card.innerHTML = `
+    <div class="recipe-note-header">
+      <strong>${escapeHtml(recipe.mealName)}</strong>
+    </div>
+    <ul class="recipe-note-text">${listItems || `<li>${escapeHtml(recipe.notes)}</li>`}</ul>
+  `;
+  return card;
+}
+
 function createEmptyState(message) {
   const block = document.createElement("div");
   block.className = "empty-state";
@@ -1329,6 +1492,144 @@ function getReportFilters() {
     dateFrom: reportDateFrom.value,
     dateTo: reportDateTo.value
   };
+}
+
+function buildRecipesShareText() {
+  const recipes = state.recipes
+    .filter((item) => item.mealName.trim() && item.notes.trim())
+    .slice()
+    .sort((left, right) => left.mealName.localeCompare(right.mealName));
+
+  if (!recipes.length) {
+    return "Meal Planner Recipes\n\nNo recipe notes saved yet.";
+  }
+
+  return [
+    "Meal Planner Recipes",
+    "",
+    ...recipes.flatMap((recipe) => [
+      recipe.mealName.trim(),
+      recipe.notes.trim(),
+      ""
+    ])
+  ].join("\n").trim();
+}
+
+function buildShoppingShareText() {
+  const categoriesWithItems = state.shoppingCategories
+    .map((category) => ({
+      category,
+      items: state.shoppingItems
+        .filter((item) => item.categoryId === category.id)
+        .slice()
+        .sort((left, right) => left.name.localeCompare(right.name))
+    }))
+    .filter(({ items }) => items.length);
+
+  if (!categoriesWithItems.length) {
+    return "Meal Planner Shopping List\n\nNo shopping items saved yet.";
+  }
+
+  return [
+    "Meal Planner Shopping List",
+    "",
+    ...categoriesWithItems.flatMap(({ category, items }) => [
+      category.name,
+      ...items.map((item) => `- ${item.name}${item.quantity ? ` (${item.quantity})` : ""}`),
+      ""
+    ])
+  ].join("\n").trim();
+}
+
+function buildNextListShareText() {
+  const neededItems = state.shoppingItems.filter((item) => item.pantryStatus === "need");
+
+  if (!neededItems.length) {
+    return "Meal Planner Next List\n\nNo items are marked as need to buy.";
+  }
+
+  const lines = ["Meal Planner Next List", ""];
+
+  const unassigned = neededItems
+    .filter((item) => !item.storeId)
+    .slice()
+    .sort((left, right) => left.name.localeCompare(right.name));
+
+  if (unassigned.length) {
+    lines.push("Unassigned");
+    unassigned.forEach((item) => {
+      const categoryName = findCategory(item.categoryId)?.name || "Category";
+      lines.push(`- ${item.name}${item.quantity ? ` (${item.quantity})` : ""} - ${categoryName}`);
+    });
+    lines.push("");
+  }
+
+  state.stores.forEach((store) => {
+    const items = neededItems
+      .filter((item) => item.storeId === store.id)
+      .slice()
+      .sort((left, right) => left.name.localeCompare(right.name));
+
+    if (!items.length) {
+      return;
+    }
+
+    lines.push(store.name);
+    items.forEach((item) => {
+      const categoryName = findCategory(item.categoryId)?.name || "Category";
+      lines.push(`- ${item.name}${item.quantity ? ` (${item.quantity})` : ""} - ${categoryName}`);
+    });
+    lines.push("");
+  });
+
+  return lines.join("\n").trim();
+}
+
+async function copyTextToClipboard(text) {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // Fall through to textarea copy.
+  }
+
+  try {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.append(textarea);
+    textarea.select();
+    textarea.setSelectionRange(0, textarea.value.length);
+    const copied = document.execCommand("copy");
+    textarea.remove();
+    return copied;
+  } catch {
+    return false;
+  }
+}
+
+function downloadTextFile(filename, text) {
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function setShareStatus(node, message) {
+  node.textContent = message;
+  window.clearTimeout(node._clearTimer);
+  node._clearTimer = window.setTimeout(() => {
+    node.textContent = "";
+  }, 2600);
 }
 
 function matchesReportFilters(entry, filters) {
